@@ -20,7 +20,6 @@ export default function HomePage() {
               className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1.5">
               Contraseña

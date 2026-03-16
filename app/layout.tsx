@@ -3,19 +3,17 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer"; // 1. Importamos el Footer
+import Footer from "../components/Footer";
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
-
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,20 +21,17 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const isAuthPage = pathname === "/" || pathname === "/registro";
-
   return (
     <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-slate-950 text-white`}
       >
-        {/* Mostramos el Navbar solo si NO es la página de login */}
         {!isAuthPage && <Navbar />}
         
         <main className="flex-grow">
           {children}
         </main>
 
-        {/* 2. Mostramos el Footer solo si NO es la página de login */}
         {!isAuthPage && <Footer />}
       </body>
     </html>
