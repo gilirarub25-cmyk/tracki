@@ -1,15 +1,21 @@
+import { supabase } from "@/lib/supabase";
+
 export async function POST(req) {
-    const { user, pass } = await req.json();
-  
-    if (!user || !pass) {
-      return Response.json({ error: "Faltan user y pass" }, { status: 400 });
-    }
-  
-    const usuarioYaExiste = user === "alvaro";
-  
-    if (usuarioYaExiste) {
-      return Response.json({ ok: false, mensaje: "El usuario ya existe" }, { status: 409 });
-    }
-  
-    return Response.json({ ok: true, mensaje: `Usuario '${user}' registrado correctamente` }, { status: 201 });
+  const { user, pass, email } = await req.json(); 
+
+  const { error } = await supabase
+    .from('usuarios')
+    .insert([
+      { 
+        nombre: user, 
+        contraseña: pass, 
+        email: email || `${user}@test.com` 
+      }
+    ]);
+
+  if (error) {
+    return Response.json({ ok: false, error: error.message }, { status: 400 });
   }
+
+  return Response.json({ ok: true, mensaje: "Usuario guardado en la DB real" });
+}
