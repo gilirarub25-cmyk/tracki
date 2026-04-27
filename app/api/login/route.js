@@ -4,9 +4,8 @@ export async function POST(req) {
   try {
     const { user, pass } = await req.json();
 
-    // Buscamos en la tabla 'usuarios' de Supabase
     const { data, error } = await supabase
-      .from('usuarios')
+      .from('usuarios') 
       .select('*')
       .eq('nombre', user)
       .eq('contraseña', pass)
@@ -16,13 +15,8 @@ export async function POST(req) {
       return Response.json({ ok: false, mensaje: "Usuario o clave incorrectos" }, { status: 401 });
     }
 
-    return Response.json({ 
-      ok: true, 
-      mensaje: "¡Login real desde Supabase!", 
-      usuario: data.nombre 
-    });
-
+    return Response.json({ ok: true, mensaje: "Login correcto", usuario: data });
   } catch (err) {
-    return Response.json({ ok: false, mensaje: "Error de servidor" }, { status: 500 });
+    return Response.json({ ok: false, mensaje: "Error en el servidor" }, { status: 500 });
   }
 }
