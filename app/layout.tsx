@@ -1,39 +1,23 @@
-"use client";
+// app/layout.tsx
+import './globals.css'
+import type { Metadata } from 'next'
 
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import { usePathname } from "next/navigation";
+export const metadata: Metadata = {
+  title: 'Tracki - Gestión de Finanzas',
+  description: 'Controla tus gastos e ingresos de forma sencilla',
+}
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === "/" || pathname === "/registro";
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-slate-950 text-white`}
-      >
-        {!isAuthPage && <Navbar />}
-        
-        <main className="flex-grow">
-          {children}
-        </main>
-
-        {!isAuthPage && <Footer />}
-      </body>
+      <head>
+        {/* Aquí puedes añadir fuentes si las necesitas globales */}
+      </head>
+      <body className="antialiased">{children}</body>
     </html>
-  );
+  )
 }

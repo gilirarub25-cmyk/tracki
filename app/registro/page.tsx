@@ -50,17 +50,30 @@ export default function RegisterPage() {
   return (
     <>
       <style>{`
-        @keyframes float1 { 0%, 100% { transform: translateY(0px) rotate(-1deg); } 50% { transform: translateY(-15px) rotate(0.5deg); } }
-        @keyframes float2 { 0%, 100% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-10px) rotate(-0.5deg); } }
-        @keyframes float3 { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-        .floating-1 { animation: float1 18s ease-in-out infinite; }
-        .floating-2 { animation: float2 22s ease-in-out infinite; }
-        .floating-3 { animation: float3 16s ease-in-out infinite; }
+        /* --- MOVIMIENTO EXTRA NOTABLE --- */
+        @keyframes floatWide {
+          0%, 100% { transform: translateY(0px) rotate(-1deg); }
+          50% { transform: translateY(-40px) translateX(-5px) rotate(1deg); }
+        }
+
+        @keyframes floatSubtle {
+          0%, 100% { transform: translateY(0px) rotate(0.5deg); }
+          50% { transform: translateY(-30px) translateX(5px) rotate(-1deg); }
+        }
+
+        @keyframes floatVertical {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-35px); }
+        }
+
+        .floating-main { animation: floatWide 12s ease-in-out infinite; }
+        .floating-side { animation: floatSubtle 14s ease-in-out infinite; }
+        .floating-bottom { animation: floatVertical 11s ease-in-out infinite; }
       `}</style>
 
       <div className="min-h-screen flex overflow-x-hidden antialiased bg-[#0e1511] text-[#dde4dd]">
         
-        {/* ── SECCIÓN IZQUIERDA: FORMULARIO ── */}
+        {/* ── SECCIÓN IZQUIERDA: FORMULARIO (TAMAÑO ORIGINAL RESTAURADO) ── */}
         <div className="w-full lg:w-[45%] xl:w-5/12 flex flex-col justify-center px-8 py-12 lg:px-20 relative z-10 bg-[#0e1511]">
           <div className="mb-12">
             <div className="flex items-center gap-2 mb-8">
@@ -130,74 +143,77 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* ── SECCIÓN DERECHA: SHOWCASE ── */}
+        {/* ── SECCIÓN DERECHA: SHOWCASE (TAMAÑO ORIGINAL PERO CARTAS AGRANDADAS) ── */}
         <div className="hidden lg:flex lg:w-[55%] xl:w-7/12 relative bg-[#1a211d] overflow-hidden items-center justify-center border-l border-[#3c4a42]/30">
           <div className="absolute inset-0 opacity-60" style={{ background: "radial-gradient(ellipse at top right, rgba(78,222,163,0.1) 0%, #1a211d 50%, #0e1511 100%)" }} />
           
-          <div className="relative z-10 w-full max-w-2xl p-12 grid grid-cols-2 gap-6 floating-1">
+          {/* El contenedor ahora es max-w-4xl para que las tarjetas ocupen más espacio en su mitad */}
+          <div className="relative z-10 w-full max-w-4xl p-12 grid grid-cols-2 gap-8 floating-main">
             
-            {/* Balance Card - EURO CORREGIDO AQUÍ */}
-            <div className="col-span-2 relative overflow-hidden rounded-2xl border border-[#343b36] shadow-2xl p-8 group" style={{ background: "linear-gradient(to bottom, rgba(47,54,50,0.9), rgba(26,33,29,0.9))" }}>
-              <div className="absolute top-0 left-0 w-full h-[1px] opacity-50" style={{ background: "linear-gradient(to right, transparent, rgba(78,222,163,0.5), transparent)" }} />
-              <div className="flex justify-between items-start mb-6">
+            {/* Balance Card (Agrandada internamente) */}
+            <div className="col-span-2 relative overflow-hidden rounded-3xl border border-[#343b36] shadow-2xl p-10 group" style={{ background: "linear-gradient(to bottom, rgba(47,54,50,0.95), rgba(26,33,29,0.95))" }}>
+              <div className="absolute top-0 left-0 w-full h-[1px] opacity-60" style={{ background: "linear-gradient(to right, transparent, rgba(78,222,163,0.6), transparent)" }} />
+              <div className="flex justify-between items-start mb-8">
                 <div>
-                  <p className="text-xs tracking-widest text-[#bbcabf] uppercase mb-2">Balance Total</p>
-                  <h2 className="text-[56px] leading-none font-bold tracking-tighter text-[#dde4dd]" style={{ textShadow: "0 0 12px rgba(78,222,163,0.4)" }}>
-                    124.562,00<span className="text-[#bbcabf]/50 text-[32px] ml-1">€</span>
+                  <p className="text-sm tracking-widest text-[#bbcabf] uppercase mb-3">Balance Total</p>
+                  {/* Fuente aumentada a text-[72px] */}
+                  <h2 className="text-[72px] leading-none font-bold tracking-tighter text-[#dde4dd]" style={{ textShadow: "0 0 15px rgba(78,222,163,0.4)" }}>
+                    124.562,00<span className="text-[#bbcabf]/50 text-[40px] ml-1">€</span>
                   </h2>
                 </div>
-                <div className="bg-[#4edea3]/10 border border-[#4edea3]/20 rounded-full px-3 py-1 flex items-center gap-1">
-                  <svg className="w-4 h-4 text-[#4edea3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                  <span className="text-xs font-medium text-[#4edea3]">+12.5%</span>
+                <div className="bg-[#4edea3]/10 border border-[#4edea3]/20 rounded-full px-4 py-2 flex items-center gap-1.5">
+                  <svg className="w-5 h-5 text-[#4edea3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  <span className="text-sm font-bold text-[#4edea3]">+12.5%</span>
                 </div>
               </div>
-              <div className="h-16 w-full flex items-end justify-between gap-1 mt-8">
+              {/* Gráfico más alto (h-24) */}
+              <div className="h-24 w-full flex items-end justify-between gap-2 mt-10">
                 {[{h:"30%",c:"20%"},{h:"45%",c:"20%"},{h:"20%",c:"20%"},{h:"60%",c:"40%"},{h:"85%",c:"100%",g:true},{h:"50%",c:"20%"},{h:"70%",c:"20%"}].map((b,i)=>(
-                  <div key={i} className={`w-full rounded-t-sm transition-all ${b.g?'bg-[#4edea3]':'bg-[#4edea3]/20'}`} style={{height:b.h, boxShadow: b.g ? "0 0 20px rgba(78,222,163,0.2)" : ""}}></div>
+                  <div key={i} className={`w-full rounded-t transition-all ${b.g?'bg-[#4edea3]':'bg-[#4edea3]/20'}`} style={{height:b.h, boxShadow: b.g ? "0 0 20px rgba(78,222,163,0.3)" : ""}}></div>
                 ))}
               </div>
             </div>
 
-            {/* Income Card */}
-            <div className="floating-2 rounded-2xl border border-[#343b36] p-6 shadow-lg bg-gradient-to-b from-[#242c27] to-[#1a211d]">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#4edea3]/10 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-[#4edea3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            {/* Income Card (Agrandada) */}
+            <div className="floating-side rounded-3xl border border-[#343b36] p-8 shadow-lg bg-gradient-to-b from-[#242c27] to-[#1a211d]">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-full bg-[#4edea3]/10 flex items-center justify-center shrink-0">
+                  <svg className="w-7 h-7 text-[#4edea3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
                 <div>
-                  <p className="text-xs text-[#bbcabf]">Ingresos (Mes)</p>
-                  <p className="text-2xl font-semibold text-[#dde4dd] mt-1">8.240,50€</p>
+                  <p className="text-sm text-[#bbcabf] tracking-wide">Ingresos (Mes)</p>
+                  <p className="text-3xl font-bold text-[#dde4dd] mt-1">8.240,50€</p>
                 </div>
               </div>
             </div>
 
-            {/* Expenses Card */}
-            <div className="floating-2 rounded-2xl border border-[#343b36] p-6 shadow-lg bg-gradient-to-b from-[#242c27] to-[#1a211d]">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-[#ffb4ab]/10 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-[#ffb4ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+            {/* Expenses Card (Agrandada) */}
+            <div className="floating-side rounded-3xl border border-[#343b36] p-8 shadow-lg bg-gradient-to-b from-[#242c27] to-[#1a211d]">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-full bg-[#ffb4ab]/10 flex items-center justify-center shrink-0">
+                  <svg className="w-7 h-7 text-[#ffb4ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                 </div>
                 <div>
-                  <p className="text-xs text-[#bbcabf]">Gastos (Mes)</p>
-                  <p className="text-2xl font-semibold text-[#dde4dd] mt-1">3.120,00€</p>
+                  <p className="text-sm text-[#bbcabf] tracking-wide">Gastos (Mes)</p>
+                  <p className="text-3xl font-bold text-[#dde4dd] mt-1">3.120,00€</p>
                 </div>
               </div>
             </div>
 
-            {/* Goals Card */}
-            <div className="floating-3 col-span-2 rounded-2xl border border-[#343b36] p-6 shadow-xl flex items-center gap-6 bg-gradient-to-b from-[rgba(47,54,50,0.8)] to-[rgba(26,33,29,0.8)]">
-              <div className="w-12 h-12 rounded-xl bg-[#7bd0ff]/10 flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-[#7bd0ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+            {/* Goals Card (Agrandada) */}
+            <div className="floating-bottom col-span-2 rounded-3xl border border-[#343b36] p-8 shadow-xl flex items-center gap-8 bg-gradient-to-b from-[rgba(47,54,50,0.8)] to-[rgba(26,33,29,0.8)]">
+              <div className="w-16 h-16 rounded-2xl bg-[#7bd0ff]/10 flex items-center justify-center shrink-0">
+                <svg className="w-8 h-8 text-[#7bd0ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
               </div>
               <div className="flex-grow">
-                <div className="flex justify-between items-end mb-2 text-sm">
-                  <span className="font-medium text-[#dde4dd]">Fondo de Emergencia</span>
-                  <span className="text-[#bbcabf]">75%</span>
+                <div className="flex justify-between items-end mb-3">
+                  <span className="text-lg font-medium text-[#dde4dd]">Fondo de Emergencia</span>
+                  <span className="text-[#7bd0ff] font-bold">75%</span>
                 </div>
-                <div className="w-full bg-[#09100c] h-2.5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full bg-[#7bd0ff]" style={{ width: "75%", boxShadow: "0 0 12px rgba(123,208,255,0.6)" }} />
+                <div className="w-full bg-[#09100c] h-3.5 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-[#7bd0ff]" style={{ width: "75%", boxShadow: "0 0 15px rgba(123,208,255,0.6)" }} />
                 </div>
-                <p className="text-xs text-[#bbcabf70] mt-2 text-right">7.500€ / 10.000€</p>
+                <p className="text-sm text-[#bbcabf70] mt-3 text-right font-medium">7.500€ / 10.000€</p>
               </div>
             </div>
 

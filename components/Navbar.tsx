@@ -1,35 +1,40 @@
 "use client";
-import Link from 'next/link';
+
+import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="relative bg-slate-900 border-b border-slate-800 z-50 font-sans">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative flex h-16 items-center justify-between">
-          <div className="flex shrink-0 items-center">
-            <Link href="/" className="text-xl font-bold text-emerald-500 tracking-tighter transition hover:opacity-80">
-              Tracki
-            </Link>
-          </div>
-          <div className="hidden sm:ml-6 sm:block">
-            <div className="flex space-x-4">
-              <Link href="/dashboard" className="rounded-md bg-gray-950/50 px-3 py-2 text-sm font-medium text-white transition">Dashboard</Link>
-              <Link href="/historial" className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:text-emerald-500 transition-colors">Historial</Link>
-            </div>
-          </div>
+    <nav className="fixed top-0 left-0 w-full h-16 z-50 flex items-center justify-between px-6" style={{ background: "#020617", borderBottom: "1px solid #1e293b" }}>
+      <div className="flex items-center gap-8">
+        {/* Tracki Logo */}
+        <Link href="/" className="text-2xl font-black tracking-tighter text-[#4edea3]">
+          Tracki
+        </Link>
+        
+        {/* Enlaces de navegación (Solo visibles en PC) */}
+        <div className="hidden md:flex items-center space-x-6 ml-4">
+          <Link href="/dashboard" className="text-sm font-bold text-[#4edea3] cursor-pointer">Panel</Link>
+          <span className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Movimientos</span>
+          <span className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Estadísticas</span>
+          <span className="text-sm font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer">Objetivos</span>
+        </div>
+      </div>
 
-          <div className="flex items-center gap-4">
-            <button className="text-gray-400 hover:text-white transition p-1">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-6">
-                <path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <div className="relative flex size-9 items-center justify-center rounded-full bg-slate-800 border-2 border-slate-700 text-slate-600 shadow-inner">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5">
-                <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clipRule="evenodd" />
-              </svg>
-            </div>
+      <div className="flex items-center space-x-4 md:space-x-5">
+        <button className="text-slate-400 hover:text-slate-200 transition-colors hidden md:block">
+          {/* Icono de Lupa */}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        </button>
+        <button className="text-slate-400 hover:text-slate-200 transition-colors relative">
+          {/* Icono de Campana */}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          <span className="absolute top-0 right-0 w-2 h-2 bg-[#4edea3] rounded-full border border-[#020617]"></span>
+        </button>
+        <div className="flex items-center gap-2 cursor-pointer md:border-l border-slate-700 md:pl-5">
+          <div className="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs text-slate-300 font-bold overflow-hidden">
+            R
           </div>
+          <span className="hidden md:block text-sm font-medium text-slate-200">Rubén</span>
         </div>
       </div>
     </nav>
