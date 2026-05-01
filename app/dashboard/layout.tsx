@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation"; // <-- Esto detecta en qué página estamos
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -22,24 +22,35 @@ const Icons = {
   person: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
 };
 
+// Hemos añadido "href" a cada ítem para saber a dónde debe navegar
 const NAV_ITEMS = [
-  { label: "Panel",  icon: Icons.dashboard },
-  { label: "Movimientos", icon: Icons.receipt },
-  { label: "Estadísticas",  icon: Icons.stats },
-  { label: "Objetivos",       icon: Icons.goals },
-  { label: "Cuentas",     icon: Icons.wallet },
+  { label: "Panel",  icon: Icons.dashboard, href: "/dashboard" },
+  { label: "Movimientos", icon: Icons.receipt, href: "/dashboard/transacciones" },
+  { label: "Estadísticas",  icon: Icons.stats, href: "/dashboard/estadisticas" },
+  { label: "Objetivos",       icon: Icons.goals, href: "/dashboard/objetivos" },
+  { label: "Cuentas",     icon: Icons.wallet, href: "/dashboard/cuentas" }, // Por si la creas más adelante
 ];
 
 function Sidebar() {
-  const [active, setActive] = useState("Panel");
+  const pathname = usePathname(); // Lee la URL actual
+
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] w-64 p-6 space-y-4 z-40" style={{ background: "#020617", borderRight: "1px solid #1e293b" }}>
       <nav className="flex-1 space-y-2 mt-2">
-        {NAV_ITEMS.map((item) => (
-          <button key={item.label} onClick={() => setActive(item.label)} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${active === item.label ? "bg-emerald-500/10 text-[#4edea3] border-r-4 border-[#4edea3]" : "text-slate-500 hover:bg-slate-900 hover:text-slate-200"}`}>
-            {item.icon}<span>{item.label}</span>
-          </button>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          // Comprueba si la ruta actual es igual al link del botón
+          const isActive = pathname === item.href;
+          
+          return (
+            <Link 
+              key={item.label} 
+              href={item.href}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? "bg-emerald-500/10 text-[#4edea3] border-r-4 border-[#4edea3]" : "text-slate-500 hover:bg-slate-900 hover:text-slate-200"}`}
+            >
+              {item.icon}<span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
       <div className="mt-auto space-y-4 pt-8 border-t border-slate-800">
         <button className="w-full bg-[#4edea3] text-[#003824] py-3 rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-[#6ffbbe] transition-colors active:scale-95 duration-200" style={neonGlow}>
@@ -59,20 +70,32 @@ function Sidebar() {
 }
 
 function BottomNav() {
-  const [active, setActive] = useState(0);
+  const pathname = usePathname();
+  
+  // Añadidos los enlaces también al menú móvil
   const tabs = [
-    { label: "Inicio",     icon: Icons.home },
-    { label: "Actividad", icon: Icons.stats },
-    { label: "Ahorros",  icon: Icons.goals },
-    { label: "Perfil",  icon: Icons.person },
+    { label: "Inicio",     icon: Icons.home, href: "/dashboard" },
+    { label: "Actividad", icon: Icons.stats, href: "/dashboard/transacciones" },
+    { label: "Ahorros",  icon: Icons.goals, href: "/dashboard/objetivos" },
+    { label: "Perfil",  icon: Icons.person, href: "#" }, // Perfil aún no lo tenemos
   ];
+
   return (
     <nav className="md:hidden flex justify-around items-center h-16 px-4 fixed bottom-0 w-full z-50 rounded-t-2xl" style={{ background: "rgba(2,6,23,0.9)", backdropFilter: "blur(16px)", borderTop: "1px solid #1e293b", boxShadow: "0 -8px 30px rgb(0,0,0,0.5)" }}>
-      {tabs.map((tab, i) => (
-        <button key={tab.label} onClick={() => setActive(i)} className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${active === i ? "text-emerald-400" : "text-slate-500"}`} style={active === i ? { filter: "drop-shadow(0 0 8px rgba(16,185,129,0.4))" } : {}}>
-          {tab.icon}<span className="text-[10px] uppercase tracking-widest mt-0.5">{tab.label}</span>
-        </button>
-      ))}
+      {tabs.map((tab) => {
+        const isActive = pathname === tab.href;
+        
+        return (
+          <Link 
+            key={tab.label} 
+            href={tab.href}
+            className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${isActive ? "text-emerald-400" : "text-slate-500"}`} 
+            style={isActive ? { filter: "drop-shadow(0 0 8px rgba(16,185,129,0.4))" } : {}}
+          >
+            {tab.icon}<span className="text-[10px] uppercase tracking-widest mt-0.5">{tab.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -82,15 +105,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[#0e1511] text-[#dde4dd] antialiased flex flex-col">
       <Navbar />
       <Sidebar />
-      
-      {/* Contenedor principal desplazado. El footer vuelve a estar aquí dentro */}
       <div className="md:ml-64 pt-16 flex-grow flex flex-col">
         {children}
-        
-        {/* Footer alineado con el contenido */}
         <Footer />
       </div>
-
       <BottomNav />
     </div>
   );
