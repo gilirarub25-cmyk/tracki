@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // <-- Esto detecta en qué página estamos
+import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 const neonGlow: React.CSSProperties = {
   boxShadow: "0 0 20px rgba(78,222,163,0.2)",
 };
 
+// ... (MANTÉN TUS ICONOS AQUÍ, copia el objeto const Icons = { ... } que ya tenías)
 const Icons = {
   dashboard: <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" /></svg>,
   receipt: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
@@ -22,45 +22,41 @@ const Icons = {
   person: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
 };
 
-// Hemos añadido "href" a cada ítem para saber a dónde debe navegar
 const NAV_ITEMS = [
   { label: "Panel",  icon: Icons.dashboard, href: "/dashboard" },
   { label: "Movimientos", icon: Icons.receipt, href: "/dashboard/transacciones" },
   { label: "Estadísticas",  icon: Icons.stats, href: "/dashboard/estadisticas" },
   { label: "Objetivos",       icon: Icons.goals, href: "/dashboard/objetivos" },
-  { label: "Cuentas",     icon: Icons.wallet, href: "/dashboard/cuentas" }, // Por si la creas más adelante
 ];
 
 function Sidebar() {
-  const pathname = usePathname(); // Lee la URL actual
+  const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] w-64 p-6 space-y-4 z-40" style={{ background: "#020617", borderRight: "1px solid #1e293b" }}>
+    <aside className="hidden md:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] w-64 p-6 space-y-4 z-40 bg-[#161d19] border-r border-[#3c4a42]/40">
       <nav className="flex-1 space-y-2 mt-2">
         {NAV_ITEMS.map((item) => {
-          // Comprueba si la ruta actual es igual al link del botón
           const isActive = pathname === item.href;
-          
           return (
             <Link 
               key={item.label} 
               href={item.href}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? "bg-emerald-500/10 text-[#4edea3] border-r-4 border-[#4edea3]" : "text-slate-500 hover:bg-slate-900 hover:text-slate-200"}`}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? "bg-[#4edea3]/10 text-[#4edea3] border-r-4 border-[#4edea3]" : "text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd]"}`}
             >
               {item.icon}<span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
-      <div className="mt-auto space-y-4 pt-8 border-t border-slate-800">
+      <div className="mt-auto space-y-4 pt-8 border-t border-[#3c4a42]/40">
         <button className="w-full bg-[#4edea3] text-[#003824] py-3 rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-[#6ffbbe] transition-colors active:scale-95 duration-200" style={neonGlow}>
           {Icons.add}<span>Nueva Transacción</span>
         </button>
         <div className="space-y-1">
-          <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-900 hover:text-slate-200 text-sm font-medium transition-all duration-300">
+          <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300">
             {Icons.help}<span>Centro de Ayuda</span>
           </button>
-          <Link href="/login" className="flex items-center space-x-3 px-4 py-2 rounded-lg text-slate-500 hover:bg-slate-900 hover:text-slate-200 text-sm font-medium transition-all duration-300">
+          <Link href="/login" className="flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300">
             {Icons.logout}<span>Cerrar Sesión</span>
           </Link>
         </div>
@@ -71,26 +67,22 @@ function Sidebar() {
 
 function BottomNav() {
   const pathname = usePathname();
-  
-  // Añadidos los enlaces también al menú móvil
   const tabs = [
     { label: "Inicio",     icon: Icons.home, href: "/dashboard" },
     { label: "Actividad", icon: Icons.stats, href: "/dashboard/transacciones" },
     { label: "Ahorros",  icon: Icons.goals, href: "/dashboard/objetivos" },
-    { label: "Perfil",  icon: Icons.person, href: "#" }, // Perfil aún no lo tenemos
   ];
 
   return (
-    <nav className="md:hidden flex justify-around items-center h-16 px-4 fixed bottom-0 w-full z-50 rounded-t-2xl" style={{ background: "rgba(2,6,23,0.9)", backdropFilter: "blur(16px)", borderTop: "1px solid #1e293b", boxShadow: "0 -8px 30px rgb(0,0,0,0.5)" }}>
+    <nav className="md:hidden flex justify-around items-center h-16 px-4 fixed bottom-0 w-full z-50 rounded-t-2xl border-t border-[#3c4a42]/40" style={{ background: "rgba(22,29,25,0.9)", backdropFilter: "blur(16px)", boxShadow: "0 -8px 30px rgb(0,0,0,0.3)" }}>
       {tabs.map((tab) => {
         const isActive = pathname === tab.href;
-        
         return (
           <Link 
             key={tab.label} 
             href={tab.href}
-            className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${isActive ? "text-emerald-400" : "text-slate-500"}`} 
-            style={isActive ? { filter: "drop-shadow(0 0 8px rgba(16,185,129,0.4))" } : {}}
+            className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${isActive ? "text-[#4edea3]" : "text-[#bbcabf]"}`} 
+            style={isActive ? { filter: "drop-shadow(0 0 8px rgba(78,222,163,0.4))" } : {}}
           >
             {tab.icon}<span className="text-[10px] uppercase tracking-widest mt-0.5">{tab.label}</span>
           </Link>
@@ -105,9 +97,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[#0e1511] text-[#dde4dd] antialiased flex flex-col">
       <Navbar />
       <Sidebar />
-      <div className="md:ml-64 pt-16 flex-grow flex flex-col">
+      <div className="md:ml-64 pt-16 flex-grow flex flex-col pb-20 md:pb-0">
         {children}
-        <Footer />
       </div>
       <BottomNav />
     </div>

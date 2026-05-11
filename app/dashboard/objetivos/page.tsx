@@ -1,25 +1,25 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 // --- Estilos Compartidos ---
-const glassCard = "bg-gradient-to-b from-slate-800/80 to-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-xl overflow-hidden";
+const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl overflow-hidden";
 const neonShadow = { boxShadow: "0 0 20px rgba(78,222,163,0.2)" };
 
-// --- Mock Data ---
-const GOALS_DATA = [
-  { id: 1, title: "MacBook Pro 16\"", category: "Tecnología y Trabajo", targetDate: "12 Oct, 2024", current: 2100, target: 3499, type: "horizontal" },
-  { id: 2, title: "Viaje a Japón", category: "Ahorros para viaje de primavera", targetDate: "Feb 2025", current: 4500, target: 6000, type: "circular" },
-  { id: 3, title: "Fondo de Emergencia", category: "Seguridad", current: 13200, target: 15000, type: "horizontal", isProtected: true },
-  { id: 4, title: "Nueva Casa", category: "Bienes Raíces", targetDate: "Jul 2027", current: 18400, target: 150000, type: "horizontal", progressOnly: true },
-  { id: 5, title: "Tesla Model 3", category: "Vehículo", current: 12000, target: 45000, type: "horizontal", inProgress: true },
-];
-
-const METRICS_DATA = [
-  { label: "Ahorro Mensual", value: "$2,450.00", icon: "💰" },
-  { label: "Crecimiento Promedio", value: "+14.2%", icon: "📈", isPositive: true },
-  { label: "Objetivos Alcanzados", value: "12", icon: "🏆" },
-];
+// --- Componente para mostrar cuando no hay datos ---
+const EmptyGoalsState = () => (
+  <div className={`${glassCard} col-span-1 lg:col-span-2 flex flex-col items-center justify-center py-16 text-center`}>
+    <div className="w-16 h-16 bg-[#1a211d] rounded-full flex items-center justify-center mb-4 border border-[#3c4a42]">
+      <span className="text-3xl">🎯</span>
+    </div>
+    <h3 className="text-xl font-semibold text-[#dde4dd] mb-2">Aún no tienes objetivos</h3>
+    <p className="text-[#bbcabf] max-w-md mb-6">Crea tu primer objetivo financiero para empezar a trackear tu progreso hacia esa casa, coche o viaje de tus sueños.</p>
+    <button className="bg-[#4edea3]/10 text-[#4edea3] border border-[#4edea3]/50 px-6 py-2 rounded-lg font-medium hover:bg-[#4edea3]/20 transition-colors">
+      Crear mi primer objetivo
+    </button>
+  </div>
+);
 
 // --- Componentes ---
 const GoalHeader = () => (
@@ -43,7 +43,7 @@ const CircularProgress = ({ percent }: { percent: number }) => {
   return (
     <div className="relative w-20 h-20">
       <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
-        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1e293b" strokeWidth="4" />
+        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#1a211d" strokeWidth="4" />
         <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#7bd0ff" strokeWidth="4" strokeDasharray={dashArray} className="drop-shadow-[0_0_8px_rgba(123,208,255,0.5)]" />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-[#dde4dd]">{percent}%</div>
@@ -100,7 +100,7 @@ const GoalCard = ({ goal }: { goal: any }) => {
               <span className="text-[#dde4dd]">{percent}%</span>
             </div>
           )}
-          <div className="w-full h-2 bg-[#1e293b] rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-[#1a211d] rounded-full overflow-hidden">
             <div className="h-full bg-[#4edea3]" style={{ width: `${percent}%`, boxShadow: "0 0 10px rgba(78,222,163,0.5)" }} />
           </div>
         </div>
@@ -109,11 +109,11 @@ const GoalCard = ({ goal }: { goal: any }) => {
   );
 };
 
-const GoalMetricsGrid = () => (
+const GoalMetricsGrid = ({ metrics }: { metrics: any[] }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-    {METRICS_DATA.map((metric, idx) => (
+    {metrics.map((metric, idx) => (
       <div key={idx} className={`${glassCard} p-5 flex items-center gap-4`}>
-        <div className="w-12 h-12 rounded-xl bg-slate-800/50 flex items-center justify-center text-2xl border border-slate-700/50">
+        <div className="w-12 h-12 rounded-xl bg-[#1a211d] flex items-center justify-center text-2xl border border-[#3c4a42]">
           {metric.icon}
         </div>
         <div>
@@ -129,15 +129,54 @@ const GoalMetricsGrid = () => (
 
 // --- Página Principal ---
 export default function ObjetivosPage() {
+  const [loading, setLoading] = useState(true);
+  
+  // Estados para los datos reales (Inician vacíos)
+  const [goalsData, setGoalsData] = useState<any[]>([]);
+  const [metricsData, setMetricsData] = useState([
+    { label: "Ahorro Mensual", value: "0.00 €", icon: "💰" },
+    { label: "Crecimiento Promedio", value: "0%", icon: "📈", isPositive: false },
+    { label: "Objetivos Alcanzados", value: "0", icon: "🏆" },
+  ]);
+
+  useEffect(() => {
+    const fetchObjetivos = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // En el futuro:
+        // const { data } = await supabase.from('objetivos').select('*').eq('user_id', user.id);
+        // setGoalsData(data);
+        
+        // Por ahora lo dejamos vacío
+        setGoalsData([]);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchObjetivos();
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-[#bbcabf]">Cargando tus objetivos...</div>;
+  }
+
   return (
-    <div className="p-6 max-w-7xl mx-auto w-full">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
       <GoalHeader />
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {GOALS_DATA.map((goal) => (
-          <GoalCard key={goal.id} goal={goal} />
-        ))}
+        {goalsData.length === 0 ? (
+          <EmptyGoalsState />
+        ) : (
+          goalsData.map((goal) => (
+            <GoalCard key={goal.id} goal={goal} />
+          ))
+        )}
       </div>
-      <GoalMetricsGrid />
+      
+      <GoalMetricsGrid metrics={metricsData} />
     </div>
   );
 }

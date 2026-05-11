@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase"; // Nuestro puente a Supabase
 
 // ─── Mini dashboard mockup (Tarjeta decorativa animada) ───
 function DashboardMockup() {
@@ -61,28 +62,36 @@ function AvatarGroup() {
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ user: "", pass: "" });
+  const [formData, setFormData] = useState({ email: "", pass: "" }); 
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      // MAGIA DE SUPABASE: Iniciamos sesión de verdad
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.pass,
       });
-      const data = await res.json();
-      setLoading(false);
-      if (data.ok) {
-        router.push('/dashboard');
-      } else {
-        alert("Error: " + data.mensaje);
+
+      if (error) {
+        setLoading(false);
+        alert("Error al iniciar sesión: " + error.message);
+        return;
       }
+
+      // Si todo va bien, el usuario existe y la contraseña es correcta
+      if (data.user) {
+        // Creamos la cookie para el middleware (por si la necesitas luego) y redirigimos al dashboard
+        document.cookie = "tracki_session=true; path=/; max-age=86400";
+        router.push('/dashboard');
+      }
+      
     } catch (err) {
       setLoading(false);
-      alert("Error de conexión.");
+      alert("Error de conexión con el servidor.");
     }
   };
 
@@ -115,12 +124,12 @@ export default function LoginPage() {
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-2">
-                <label className="block text-xs tracking-[0.05em] font-medium text-[#bbcabf] uppercase">Nombre de usuario</label>
+                <label className="block text-xs tracking-[0.05em] font-medium text-[#bbcabf] uppercase">Correo Electrónico</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="w-5 h-5 text-[#86948a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   </div>
-                  <input required type="text" placeholder="Tu usuario" className="w-full bg-[#1a211d] border border-[#3c4a42] rounded-lg py-3 pl-10 pr-4 text-base text-[#dde4dd] focus:border-[#4edea3] focus:outline-none transition-colors" onChange={(e) => setFormData({ ...formData, user: e.target.value })} />
+                  <input required type="email" placeholder="tu@correo.com" className="w-full bg-[#1a211d] border border-[#3c4a42] rounded-lg py-3 pl-10 pr-4 text-base text-[#dde4dd] focus:border-[#4edea3] focus:outline-none transition-colors" onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                 </div>
               </div>
 
@@ -140,12 +149,13 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="w-full bg-[#4edea3] text-[#003824] text-base font-medium py-3 rounded-lg transition-all active:scale-[0.98] hover:bg-[#6ffbbe]" style={{ boxShadow: "0 0 20px rgba(78,222,163,0.2)" }}>
-                {loading ? "Comprobando..." : "Iniciar sesión"}
+              <button type="submit" disabled={loading} className="w-full bg-[#4edea3] text-[#003824] text-base font-medium py-3 rounded-lg transition-all active:scale-[0.98] hover:bg-[#6ffbbe] disabled:opacity-50" style={{ boxShadow: "0 0 20px rgba(78,222,163,0.2)" }}>
+                {loading ? "Comprobando credenciales..." : "Iniciar sesión"}
               </button>
 
               <div className="relative flex items-center py-4"><div className="flex-grow border-t border-[#3c4a42]" /><span className="mx-4 text-sm text-[#bbcabf]">O</span><div className="flex-grow border-t border-[#3c4a42]" /></div>
 
+              {/* Botón de Google */}
               <button type="button" className="w-full bg-[#0e1511] border border-[#3c4a42] text-[#dde4dd] text-base font-medium py-3 rounded-lg hover:bg-[#1a211d] flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25C22.56 11.47 22.49 10.72 22.36 10H12V14.26H17.92C17.66 15.63 16.88 16.79 15.71 17.57V20.34H19.27C21.35 18.42 22.56 15.6 22.56 12.25Z" fill="#4285F4" /><path d="M12 23C14.97 23 17.46 22.02 19.27 20.34L15.71 17.57C14.73 18.23 13.48 18.63 12 18.63C9.13999 18.63 6.70999 16.7 5.84999 14.11H2.17999V16.96C3.98999 20.56 7.7 23 12 23Z" fill="#34A853" /><path d="M5.84999 14.11C5.62999 13.45 5.49999 12.74 5.49999 12C5.49999 11.26 5.62999 10.55 5.84999 9.89V7.04H2.17999C1.42999 8.53 1 10.22 1 12C1 13.78 1.42999 15.47 2.17999 16.96L5.84999 14.11Z" fill="#FBBC05" /><path d="M12 5.38C13.62 5.38 15.06 5.94 16.21 7.02L19.34 3.89C17.46 2.13 14.97 1 12 1C7.7 1 3.98999 3.44 2.17999 7.04L5.84999 9.89C6.70999 7.3 9.13999 5.38 12 5.38Z" fill="#EA4335" /></svg>
                 Continuar con Google

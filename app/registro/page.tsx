@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,24 +27,33 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      // 👇 MAGIA DE SUPABASE: Registramos al usuario
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.pass,
+        options: {
+          data: {
+            nombre: formData.user, // Guardamos su nombre en los metadatos
+          }
+        }
       });
 
-      const data = await res.json();
       setLoading(false);
 
-      if (data.ok) {
-        alert("¡Bienvenido a Tracki! Cuenta creada.");
-        router.push("/login");
-      } else {
-        alert("Error: " + data.mensaje);
+      if (error) {
+        alert("Error al crear cuenta: " + error.message);
+        return;
       }
+
+      // Si todo sale bien, la cuenta se crea (y el trigger la copia a la tabla usuarios)
+      if (data.user) {
+        alert("¡Bienvenido a Tracki! Tu cuenta ha sido creada.");
+        router.push("/"); // <--- CAMBIADO AQUÍ: Redirige a la raíz
+      }
+      
     } catch (err) {
       setLoading(false);
-      alert("Error de conexión.");
+      alert("Error de conexión con el servidor.");
     }
   };
 
@@ -73,7 +83,7 @@ export default function RegisterPage() {
 
       <div className="min-h-screen flex overflow-x-hidden antialiased bg-[#0e1511] text-[#dde4dd]">
         
-        {/* ── SECCIÓN IZQUIERDA: FORMULARIO (TAMAÑO ORIGINAL RESTAURADO) ── */}
+        {/* ── SECCIÓN IZQUIERDA: FORMULARIO ── */}
         <div className="w-full lg:w-[45%] xl:w-5/12 flex flex-col justify-center px-8 py-12 lg:px-20 relative z-10 bg-[#0e1511]">
           <div className="mb-12">
             <div className="flex items-center gap-2 mb-8">
@@ -124,10 +134,10 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-[#bbcabf] mt-1">Mínimo 8 caracteres, incluye un número o símbolo.</p>
+              <p className="text-xs text-[#bbcabf] mt-1">Mínimo 6 caracteres.</p>
             </div>
 
-            <button type="submit" disabled={loading} className="w-full bg-[#4edea3] hover:bg-[#6ffbbe] text-[#003824] font-semibold text-lg py-4 rounded-xl mt-4 transition-all shadow-[0_0_24px_rgba(78,222,163,0.15)] flex justify-center items-center gap-2">
+            <button type="submit" disabled={loading} className="w-full bg-[#4edea3] hover:bg-[#6ffbbe] text-[#003824] font-semibold text-lg py-4 rounded-xl mt-4 transition-all shadow-[0_0_24px_rgba(78,222,163,0.15)] flex justify-center items-center gap-2 disabled:opacity-50">
               {loading ? "Creando..." : "Crear cuenta"}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
             </button>
@@ -139,24 +149,23 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-auto pt-12 text-sm text-[#bbcabf] text-center lg:text-left">
-            ¿Ya tienes cuenta? <Link href="/login" className="text-[#4edea3] font-medium hover:underline ml-1">Inicia sesión aquí</Link>
+            {/* 👇 CAMBIADO AQUÍ: Redirige a la raíz (/) en lugar de /login */}
+            ¿Ya tienes cuenta? <Link href="/" className="text-[#4edea3] font-medium hover:underline ml-1">Inicia sesión aquí</Link>
           </div>
         </div>
 
-        {/* ── SECCIÓN DERECHA: SHOWCASE (TAMAÑO ORIGINAL PERO CARTAS AGRANDADAS) ── */}
+        {/* ── SECCIÓN DERECHA: SHOWCASE ── */}
         <div className="hidden lg:flex lg:w-[55%] xl:w-7/12 relative bg-[#1a211d] overflow-hidden items-center justify-center border-l border-[#3c4a42]/30">
           <div className="absolute inset-0 opacity-60" style={{ background: "radial-gradient(ellipse at top right, rgba(78,222,163,0.1) 0%, #1a211d 50%, #0e1511 100%)" }} />
           
-          {/* El contenedor ahora es max-w-4xl para que las tarjetas ocupen más espacio en su mitad */}
           <div className="relative z-10 w-full max-w-4xl p-12 grid grid-cols-2 gap-8 floating-main">
             
-            {/* Balance Card (Agrandada internamente) */}
+            {/* Balance Card */}
             <div className="col-span-2 relative overflow-hidden rounded-3xl border border-[#343b36] shadow-2xl p-10 group" style={{ background: "linear-gradient(to bottom, rgba(47,54,50,0.95), rgba(26,33,29,0.95))" }}>
               <div className="absolute top-0 left-0 w-full h-[1px] opacity-60" style={{ background: "linear-gradient(to right, transparent, rgba(78,222,163,0.6), transparent)" }} />
               <div className="flex justify-between items-start mb-8">
                 <div>
                   <p className="text-sm tracking-widest text-[#bbcabf] uppercase mb-3">Balance Total</p>
-                  {/* Fuente aumentada a text-[72px] */}
                   <h2 className="text-[72px] leading-none font-bold tracking-tighter text-[#dde4dd]" style={{ textShadow: "0 0 15px rgba(78,222,163,0.4)" }}>
                     124.562,00<span className="text-[#bbcabf]/50 text-[40px] ml-1">€</span>
                   </h2>
@@ -166,7 +175,6 @@ export default function RegisterPage() {
                   <span className="text-sm font-bold text-[#4edea3]">+12.5%</span>
                 </div>
               </div>
-              {/* Gráfico más alto (h-24) */}
               <div className="h-24 w-full flex items-end justify-between gap-2 mt-10">
                 {[{h:"30%",c:"20%"},{h:"45%",c:"20%"},{h:"20%",c:"20%"},{h:"60%",c:"40%"},{h:"85%",c:"100%",g:true},{h:"50%",c:"20%"},{h:"70%",c:"20%"}].map((b,i)=>(
                   <div key={i} className={`w-full rounded-t transition-all ${b.g?'bg-[#4edea3]':'bg-[#4edea3]/20'}`} style={{height:b.h, boxShadow: b.g ? "0 0 20px rgba(78,222,163,0.3)" : ""}}></div>
@@ -174,7 +182,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Income Card (Agrandada) */}
+            {/* Income Card */}
             <div className="floating-side rounded-3xl border border-[#343b36] p-8 shadow-lg bg-gradient-to-b from-[#242c27] to-[#1a211d]">
               <div className="flex items-center gap-5">
                 <div className="w-14 h-14 rounded-full bg-[#4edea3]/10 flex items-center justify-center shrink-0">
@@ -187,7 +195,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Expenses Card (Agrandada) */}
+            {/* Expenses Card */}
             <div className="floating-side rounded-3xl border border-[#343b36] p-8 shadow-lg bg-gradient-to-b from-[#242c27] to-[#1a211d]">
               <div className="flex items-center gap-5">
                 <div className="w-14 h-14 rounded-full bg-[#ffb4ab]/10 flex items-center justify-center shrink-0">
@@ -200,7 +208,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Goals Card (Agrandada) */}
+            {/* Goals Card */}
             <div className="floating-bottom col-span-2 rounded-3xl border border-[#343b36] p-8 shadow-xl flex items-center gap-8 bg-gradient-to-b from-[rgba(47,54,50,0.8)] to-[rgba(26,33,29,0.8)]">
               <div className="w-16 h-16 rounded-2xl bg-[#7bd0ff]/10 flex items-center justify-center shrink-0">
                 <svg className="w-8 h-8 text-[#7bd0ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
