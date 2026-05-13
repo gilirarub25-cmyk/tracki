@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import Icon from "@/components/Icon";
 
 // --- Estilos Compartidos ---
 const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl overflow-hidden";
@@ -11,7 +12,7 @@ const neonShadow = { boxShadow: "0 0 20px rgba(78,222,163,0.2)" };
 const EmptyGoalsState = () => (
   <div className={`${glassCard} col-span-1 lg:col-span-2 flex flex-col items-center justify-center py-16 text-center`}>
     <div className="w-16 h-16 bg-[#1a211d] rounded-full flex items-center justify-center mb-4 border border-[#3c4a42]">
-      <span className="text-3xl">🎯</span>
+      <Icon name="target" className="w-8 h-8 text-[#4edea3]" />
     </div>
     <h3 className="text-xl font-semibold text-[#dde4dd] mb-2">Aún no tienes objetivos</h3>
     <p className="text-[#bbcabf] max-w-md mb-6">Crea tu primer objetivo financiero para empezar a trackear tu progreso hacia esa casa, coche o viaje de tus sueños.</p>
@@ -57,11 +58,18 @@ const GoalCard = ({ goal }: { goal: any }) => {
   return (
     <div className={`${glassCard} p-6 flex flex-col justify-between ${goal.type === 'circular' ? 'md:col-span-1' : 'md:col-span-2 lg:col-span-1'}`}>
       <div className="flex justify-between items-start mb-6">
-        <div>
-          <span className="text-[10px] uppercase font-bold tracking-wider text-[#4edea3] bg-[#4edea3]/10 px-2 py-1 rounded-full mb-3 inline-block">
-            {goal.category}
-          </span>
-          <h3 className="text-xl font-semibold text-[#dde4dd]">{goal.title}</h3>
+        <div className="flex items-start gap-3">
+          {goal.icono && (
+            <div className="w-10 h-10 rounded-xl bg-[#1a211d] flex items-center justify-center border border-[#3c4a42] flex-shrink-0">
+              <Icon name={goal.icono} className="w-5 h-5 text-[#4edea3]" />
+            </div>
+          )}
+          <div>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-[#4edea3] bg-[#4edea3]/10 px-2 py-1 rounded-full mb-3 inline-block">
+              {goal.category}
+            </span>
+            <h3 className="text-xl font-semibold text-[#dde4dd]">{goal.title}</h3>
+          </div>
         </div>
         {goal.targetDate && (
           <div className="text-right">
@@ -113,8 +121,8 @@ const GoalMetricsGrid = ({ metrics }: { metrics: any[] }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
     {metrics.map((metric, idx) => (
       <div key={idx} className={`${glassCard} p-5 flex items-center gap-4`}>
-        <div className="w-12 h-12 rounded-xl bg-[#1a211d] flex items-center justify-center text-2xl border border-[#3c4a42]">
-          {metric.icon}
+        <div className="w-12 h-12 rounded-xl bg-[#1a211d] flex items-center justify-center border border-[#3c4a42]">
+          <Icon name={metric.icon} className={`w-6 h-6 ${metric.iconColor || 'text-[#4edea3]'}`} />
         </div>
         <div>
           <p className="text-[10px] uppercase font-bold text-[#bbcabf] tracking-wider mb-1">{metric.label}</p>
@@ -134,9 +142,9 @@ export default function ObjetivosPage() {
   // Estados para los datos reales (Inician vacíos)
   const [goalsData, setGoalsData] = useState<any[]>([]);
   const [metricsData, setMetricsData] = useState([
-    { label: "Ahorro Mensual", value: "0.00 €", icon: "💰" },
-    { label: "Crecimiento Promedio", value: "0%", icon: "📈", isPositive: false },
-    { label: "Objetivos Alcanzados", value: "0", icon: "🏆" },
+    { label: "Ahorro Mensual",        value: "0.00 €", icon: "money",         iconColor: "text-[#4edea3]" },
+    { label: "Crecimiento Promedio",  value: "0%",     icon: "trending-up",   iconColor: "text-[#4edea3]", isPositive: false },
+    { label: "Objetivos Alcanzados",  value: "0",      icon: "trophy",        iconColor: "text-[#ffd6a5]" },
   ]);
 
   useEffect(() => {
@@ -145,7 +153,7 @@ export default function ObjetivosPage() {
       
       if (user) {
         // En el futuro:
-        // const { data } = await supabase.from('objetivos').select('*').eq('user_id', user.id);
+        // const { data } = await supabase.from('objetivos').select('*').eq('id_usuario', user.id);
         // setGoalsData(data);
         
         // Por ahora lo dejamos vacío

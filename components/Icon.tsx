@@ -152,7 +152,7 @@ const ICONS: Record<string, React.ReactNode> = {
     </>
   ),
 
-  // ─── EXTRA UI (cuentas, etc) ────────────────────────────────
+  // ─── CUENTAS ────────────────────────────────────────────────
   wallet: (
     <>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -173,6 +173,48 @@ const ICONS: Record<string, React.ReactNode> = {
     <>
       <rect x="2" y="6" width="20" height="12" rx="2" strokeWidth={1.8} />
       <circle cx="12" cy="12" r="2.5" strokeWidth={1.8} />
+    </>
+  ),
+
+  // ─── UI / GENERALES ─────────────────────────────────────────
+  "trending-up": (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 17l6-6 4 4 8-8" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 7h7v7" />
+    </>
+  ),
+  "trending-down": (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7l6 6 4-4 8 8" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 17h7v-7" />
+    </>
+  ),
+  "arrow-up": (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 19V5M5 12l7-7 7 7" />
+    </>
+  ),
+  "arrow-down": (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 5v14M5 12l7 7 7-7" />
+    </>
+  ),
+  download: (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v12m0 0l-4-4m4 4l4-4" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+    </>
+  ),
+  lightbulb: (
+    <>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9V16a1 1 0 001 1h5a1 1 0 001-1v-2.1A6 6 0 0012 3z" />
+    </>
+  ),
+  money: (
+    <>
+      <rect x="2" y="6" width="20" height="12" rx="2" strokeWidth={1.8} />
+      <circle cx="12" cy="12" r="2.5" strokeWidth={1.8} />
+      <path strokeLinecap="round" strokeWidth={1.8} d="M6 10v.01M18 14v.01" />
     </>
   ),
 };

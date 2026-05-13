@@ -1,36 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { supabase } from "@/lib/supabase";
 
 const neonGlow: React.CSSProperties = {
   boxShadow: "0 0 20px rgba(78,222,163,0.2)",
 };
 
-// ... (MANTÉN TUS ICONOS AQUÍ, copia el objeto const Icons = { ... } que ya tenías)
+// ── ICONOS DE NAVEGACIÓN ──
 const Icons = {
   dashboard: <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" /></svg>,
   receipt: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
   stats: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
   goals: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
-  wallet: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
   help: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   logout: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
   add: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
   home: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
-  person: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
 };
 
 const NAV_ITEMS = [
-  { label: "Panel",  icon: Icons.dashboard, href: "/dashboard" },
-  { label: "Movimientos", icon: Icons.receipt, href: "/dashboard/transacciones" },
-  { label: "Estadísticas",  icon: Icons.stats, href: "/dashboard/estadisticas" },
-  { label: "Objetivos",       icon: Icons.goals, href: "/dashboard/objetivos" },
+  { label: "Panel",        icon: Icons.dashboard, href: "/dashboard" },
+  { label: "Movimientos",  icon: Icons.receipt,   href: "/dashboard/transacciones" },
+  { label: "Estadísticas", icon: Icons.stats,     href: "/dashboard/estadisticas" },
+  { label: "Objetivos",    icon: Icons.goals,     href: "/dashboard/objetivos" },
 ];
 
 function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Cierre de sesión: limpia Supabase + cookie y redirige a la landing
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    document.cookie = "tracki_session=; path=/; max-age=0";
+    router.push("/");
+  };
 
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] w-64 p-6 space-y-4 z-40 bg-[#161d19] border-r border-[#3c4a42]/40">
@@ -38,8 +46,8 @@ function Sidebar() {
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link 
-              key={item.label} 
+            <Link
+              key={item.label}
               href={item.href}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? "bg-[#4edea3]/10 text-[#4edea3] border-r-4 border-[#4edea3]" : "text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd]"}`}
             >
@@ -56,9 +64,12 @@ function Sidebar() {
           <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300">
             {Icons.help}<span>Centro de Ayuda</span>
           </button>
-          <Link href="/login" className="flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300 cursor-pointer"
+          >
             {Icons.logout}<span>Cerrar Sesión</span>
-          </Link>
+          </button>
         </div>
       </div>
     </aside>
@@ -68,9 +79,9 @@ function Sidebar() {
 function BottomNav() {
   const pathname = usePathname();
   const tabs = [
-    { label: "Inicio",     icon: Icons.home, href: "/dashboard" },
+    { label: "Inicio",    icon: Icons.home,  href: "/dashboard" },
     { label: "Actividad", icon: Icons.stats, href: "/dashboard/transacciones" },
-    { label: "Ahorros",  icon: Icons.goals, href: "/dashboard/objetivos" },
+    { label: "Ahorros",   icon: Icons.goals, href: "/dashboard/objetivos" },
   ];
 
   return (
@@ -78,10 +89,10 @@ function BottomNav() {
       {tabs.map((tab) => {
         const isActive = pathname === tab.href;
         return (
-          <Link 
-            key={tab.label} 
+          <Link
+            key={tab.label}
             href={tab.href}
-            className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${isActive ? "text-[#4edea3]" : "text-[#bbcabf]"}`} 
+            className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${isActive ? "text-[#4edea3]" : "text-[#bbcabf]"}`}
             style={isActive ? { filter: "drop-shadow(0 0 8px rgba(78,222,163,0.4))" } : {}}
           >
             {tab.icon}<span className="text-[10px] uppercase tracking-widest mt-0.5">{tab.label}</span>
@@ -94,11 +105,14 @@ function BottomNav() {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0e1511] text-[#dde4dd] antialiased flex flex-col">
+    <div className="text-[#dde4dd] antialiased flex flex-col flex-grow">
       <Navbar />
       <Sidebar />
-      <div className="md:ml-64 pt-16 flex-grow flex flex-col pb-20 md:pb-0">
-        {children}
+      <div className="md:ml-64 pt-16 flex-grow flex flex-col pb-16 md:pb-0">
+        <div className="flex-grow flex flex-col">
+          {children}
+        </div>
+        <Footer />
       </div>
       <BottomNav />
     </div>

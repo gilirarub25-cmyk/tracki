@@ -1,6 +1,14 @@
 // app/layout.tsx
 import './globals.css'
 import type { Metadata } from 'next'
+import { Manrope } from 'next/font/google'
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-manrope',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+})
 
 export const metadata: Metadata = {
   title: 'Tracki - Gestión de Finanzas',
@@ -13,11 +21,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es">
-      <head>
-        {/* Aquí puedes añadir fuentes si las necesitas globales */}
-      </head>
-      <body className="antialiased">{children}</body>
+    <html lang="es" className={manrope.variable}>
+      <body className="antialiased min-h-screen flex flex-col bg-[#0e1511] text-[#dde4dd] font-sans">
+        {children}
+      </body>
     </html>
   )
 }

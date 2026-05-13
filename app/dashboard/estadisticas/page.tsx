@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { AreaChart, Area, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { supabase } from "@/lib/supabase";
+import Icon from "@/components/Icon";
 
 const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl";
 
@@ -70,7 +71,7 @@ const InsightCards = () => (
   <div className="flex flex-col gap-4">
     <div className={`${glassCard} p-6 flex-1 flex flex-col justify-center`}>
       <div className="w-10 h-10 rounded-full bg-[#4edea3]/20 flex items-center justify-center mb-4">
-        <span className="text-[#4edea3] text-xl">💡</span>
+        <Icon name="lightbulb" className="w-5 h-5 text-[#4edea3]" />
       </div>
       <h3 className="text-md font-semibold text-[#dde4dd] mb-2">Insight de Ahorro</h3>
       <p className="text-sm text-[#bbcabf] mb-4">Necesitamos más datos de tus gastos para generar sugerencias personalizadas de ahorro.</p>
@@ -161,7 +162,7 @@ export default function EstadisticasPage() {
       
       if (user) {
         // 2. Aquí en el futuro haremos las consultas a Supabase
-        // const { data } = await supabase.from('transacciones').select('*').eq('user_id', user.id);
+        // const { data } = await supabase.from('transacciones').select('*').eq('id_usuario', user.id);
         
         // Dejamos los arrays vacíos para que se muestre la interfaz de "Nuevo Usuario"
         setNetWorthData([]);
