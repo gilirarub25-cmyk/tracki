@@ -1,3 +1,4 @@
+// app/dashboard/layout.tsx
 "use client";
 
 import Link from "next/link";
@@ -5,12 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
+import { ModalProvider, useModal } from "@/contexts/ModalContext";
 
 const neonGlow: React.CSSProperties = {
   boxShadow: "0 0 20px rgba(78,222,163,0.2)",
 };
 
-// ── ICONOS DE NAVEGACIÓN ──
 const Icons = {
   dashboard: <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" /></svg>,
   receipt: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
@@ -32,8 +33,8 @@ const NAV_ITEMS = [
 function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { openTransactionModal } = useModal();
 
-  // Cierre de sesión: limpia Supabase + cookie y redirige a la landing
   const handleLogout = async () => {
     await supabase.auth.signOut();
     document.cookie = "tracki_session=; path=/; max-age=0";
@@ -57,11 +58,15 @@ function Sidebar() {
         })}
       </nav>
       <div className="mt-auto space-y-4 pt-8 border-t border-[#3c4a42]/40">
-        <button className="w-full bg-[#4edea3] text-[#003824] py-3 rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-[#6ffbbe] transition-colors active:scale-95 duration-200" style={neonGlow}>
+        <button
+          onClick={openTransactionModal}
+          className="w-full bg-[#4edea3] text-[#003824] py-3 rounded-lg font-bold flex items-center justify-center space-x-2 hover:bg-[#6ffbbe] transition-colors active:scale-95 duration-200 cursor-pointer"
+          style={neonGlow}
+        >
           {Icons.add}<span>Nueva Transacción</span>
         </button>
         <div className="space-y-1">
-          <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300">
+          <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300 cursor-pointer">
             {Icons.help}<span>Centro de Ayuda</span>
           </button>
           <button
@@ -78,43 +83,53 @@ function Sidebar() {
 
 function BottomNav() {
   const pathname = usePathname();
-  const tabs = [
-    { label: "Inicio",    icon: Icons.home,  href: "/dashboard" },
-    { label: "Actividad", icon: Icons.stats, href: "/dashboard/transacciones" },
-    { label: "Ahorros",   icon: Icons.goals, href: "/dashboard/objetivos" },
-  ];
+  const { openTransactionModal } = useModal();
 
   return (
     <nav className="md:hidden flex justify-around items-center h-16 px-4 fixed bottom-0 w-full z-50 rounded-t-2xl border-t border-[#3c4a42]/40" style={{ background: "rgba(22,29,25,0.9)", backdropFilter: "blur(16px)", boxShadow: "0 -8px 30px rgb(0,0,0,0.3)" }}>
-      {tabs.map((tab) => {
-        const isActive = pathname === tab.href;
-        return (
-          <Link
-            key={tab.label}
-            href={tab.href}
-            className={`flex flex-col items-center justify-center w-16 rounded-lg py-1 transition-colors ${isActive ? "text-[#4edea3]" : "text-[#bbcabf]"}`}
-            style={isActive ? { filter: "drop-shadow(0 0 8px rgba(78,222,163,0.4))" } : {}}
-          >
-            {tab.icon}<span className="text-[10px] uppercase tracking-widest mt-0.5">{tab.label}</span>
-          </Link>
-        );
-      })}
+      <Link href="/dashboard" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
+        {Icons.home}<span className="text-[10px] uppercase tracking-widest mt-0.5">Inicio</span>
+      </Link>
+      <Link href="/dashboard/transacciones" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/transacciones" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
+        {Icons.stats}<span className="text-[10px] uppercase tracking-widest mt-0.5">Mov.</span>
+      </Link>
+      {/* Botón central: añadir transacción */}
+      <button
+        onClick={openTransactionModal}
+        className="flex items-center justify-center -mt-6 w-14 h-14 rounded-full bg-[#4edea3] text-[#003824] shadow-lg cursor-pointer hover:bg-[#6ffbbe] transition-colors"
+        style={{ boxShadow: "0 8px 20px rgba(78,222,163,0.3)" }}
+        aria-label="Nueva transacción"
+      >
+        {Icons.add}
+      </button>
+      <Link href="/dashboard/estadisticas" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/estadisticas" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
+        {Icons.stats}<span className="text-[10px] uppercase tracking-widest mt-0.5">Estad.</span>
+      </Link>
+      <Link href="/dashboard/objetivos" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/objetivos" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
+        {Icons.goals}<span className="text-[10px] uppercase tracking-widest mt-0.5">Obj.</span>
+      </Link>
     </nav>
   );
 }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="text-[#dde4dd] antialiased flex flex-col flex-grow">
       <Navbar />
       <Sidebar />
       <div className="md:ml-64 pt-16 flex-grow flex flex-col pb-16 md:pb-0">
-        <div className="flex-grow flex flex-col">
-          {children}
-        </div>
+        <div className="flex-grow flex flex-col">{children}</div>
         <Footer />
       </div>
       <BottomNav />
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ModalProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </ModalProvider>
   );
 }
