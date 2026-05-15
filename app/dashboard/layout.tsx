@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase } from "@/lib/supabase";
 import { ModalProvider, useModal } from "@/contexts/ModalContext";
+import AccountGuard from "@/components/AccountGuard";
 
 const neonGlow: React.CSSProperties = {
   boxShadow: "0 0 20px rgba(78,222,163,0.2)",
@@ -17,6 +18,7 @@ const Icons = {
   receipt: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
   stats: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
   goals: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
+  accounts: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
   help: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   logout: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
   add: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
@@ -28,6 +30,7 @@ const NAV_ITEMS = [
   { label: "Movimientos",  icon: Icons.receipt,   href: "/dashboard/transacciones" },
   { label: "Estadísticas", icon: Icons.stats,     href: "/dashboard/estadisticas" },
   { label: "Objetivos",    icon: Icons.goals,     href: "/dashboard/objetivos" },
+  { label: "Cuentas",      icon: Icons.accounts,  href: "/dashboard/cuentas" },
 ];
 
 function Sidebar() {
@@ -91,9 +94,8 @@ function BottomNav() {
         {Icons.home}<span className="text-[10px] uppercase tracking-widest mt-0.5">Inicio</span>
       </Link>
       <Link href="/dashboard/transacciones" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/transacciones" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
-        {Icons.stats}<span className="text-[10px] uppercase tracking-widest mt-0.5">Mov.</span>
+        {Icons.receipt}<span className="text-[10px] uppercase tracking-widest mt-0.5">Mov.</span>
       </Link>
-      {/* Botón central: añadir transacción */}
       <button
         onClick={openTransactionModal}
         className="flex items-center justify-center -mt-6 w-14 h-14 rounded-full bg-[#4edea3] text-[#003824] shadow-lg cursor-pointer hover:bg-[#6ffbbe] transition-colors"
@@ -102,11 +104,11 @@ function BottomNav() {
       >
         {Icons.add}
       </button>
-      <Link href="/dashboard/estadisticas" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/estadisticas" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
-        {Icons.stats}<span className="text-[10px] uppercase tracking-widest mt-0.5">Estad.</span>
-      </Link>
       <Link href="/dashboard/objetivos" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/objetivos" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
         {Icons.goals}<span className="text-[10px] uppercase tracking-widest mt-0.5">Obj.</span>
+      </Link>
+      <Link href="/dashboard/cuentas" className={`flex flex-col items-center justify-center w-14 rounded-lg py-1 transition-colors ${pathname === "/dashboard/cuentas" ? "text-[#4edea3]" : "text-[#bbcabf]"}`}>
+        {Icons.accounts}<span className="text-[10px] uppercase tracking-widest mt-0.5">Cuent.</span>
       </Link>
     </nav>
   );
@@ -118,7 +120,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       <Navbar />
       <Sidebar />
       <div className="md:ml-64 pt-16 flex-grow flex flex-col pb-16 md:pb-0">
-        <div className="flex-grow flex flex-col">{children}</div>
+        <div className="flex-grow flex flex-col">
+          <AccountGuard>{children}</AccountGuard>
+        </div>
         <Footer />
       </div>
       <BottomNav />

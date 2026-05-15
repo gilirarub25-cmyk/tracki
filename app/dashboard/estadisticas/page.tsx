@@ -15,6 +15,15 @@ const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl";
 const formatoEUR = (n: number) =>
   n.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
 
+// Nombres de mes en español, formato corto y capitalizado
+const MESES_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+// Etiqueta legible para el eje X: "May 2026" (no "may 26")
+const etiquetaMes = (fechaIso: string): string => {
+  const d = new Date(fechaIso);
+  return `${MESES_ES[d.getMonth()]} ${d.getFullYear()}`;
+};
+
 type Periodo = "mensual" | "trimestral" | "anual";
 
 type TxRaw = {
@@ -26,7 +35,6 @@ type TxRaw = {
 
 const COLORES_CHART = ["#4edea3", "#7bd0ff", "#ffb4ab", "#ffd6a5", "#c8a6ff", "#86948a", "#6ffbbe", "#3c4a42"];
 
-// Empty state para charts
 const EmptyChartState = ({ message }: { message: string }) => (
   <div className="w-full h-full flex flex-col items-center justify-center text-center min-h-[200px]">
     <svg className="w-12 h-12 text-[#3c4a42] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -42,24 +50,19 @@ export default function EstadisticasPage() {
   const [periodo, setPeriodo] = useState<Periodo>("mensual");
   const { refreshKey } = useModal();
 
-  // Fetch
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
 
-      // Filtro por periodo
       const now = new Date();
       let desde: string | null = null;
       if (periodo === "mensual") {
-        // últimos 6 meses
         const d = new Date(now.getFullYear(), now.getMonth() - 5, 1);
         desde = d.toISOString().split("T")[0];
       } else if (periodo === "trimestral") {
-        // últimos 12 meses
         const d = new Date(now.getFullYear(), now.getMonth() - 11, 1);
         desde = d.toISOString().split("T")[0];
       } else {
-        // anual: últimos 3 años
         const d = new Date(now.getFullYear() - 2, 0, 1);
         desde = d.toISOString().split("T")[0];
       }
@@ -82,14 +85,14 @@ export default function EstadisticasPage() {
     fetchData();
   }, [refreshKey, periodo]);
 
-  // Cálculo: agrupar por mes para AreaChart + BarChart
+  // Agrupar por mes (clave YYYY-MM, valor: { mes, ingresos, gastos })
   const datosPorMes = useMemo(() => {
     const map = new Map<string, { mes: string; ingresos: number; gastos: number }>();
 
     transacciones.forEach((t) => {
       const d = new Date(t.fecha);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+      const label = `${MESES_ES[d.getMonth()]} ${d.getFullYear()}`;
       const cur = map.get(key) || { mes: label, ingresos: 0, gastos: 0 };
       if (t.tipo === "ingreso") cur.ingresos += Number(t.monto);
       else cur.gastos += Number(t.monto);
@@ -110,7 +113,7 @@ export default function EstadisticasPage() {
     });
   }, [datosPorMes]);
 
-  // Gastos por categoría (pie)
+  // Gastos por categoría
   const gastosPorCategoria = useMemo(() => {
     const map = new Map<string, { nombre: string; valor: number; color: string }>();
     transacciones.filter((t) => t.tipo === "gasto").forEach((t) => {
@@ -132,7 +135,6 @@ export default function EstadisticasPage() {
       }));
   }, [transacciones]);
 
-  // Balance total y categoría con mayor gasto
   const balanceTotal = evolucionBalance.length > 0 ? evolucionBalance[evolucionBalance.length - 1].value : 0;
   const mayorGasto = gastosPorCategoria[0];
 
@@ -143,7 +145,6 @@ export default function EstadisticasPage() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
 
-      {/* Cabecera */}
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <p className="text-xs font-bold tracking-widest text-[#4edea3] uppercase mb-1">Analíticas de Rendimiento</p>
@@ -166,7 +167,6 @@ export default function EstadisticasPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* AreaChart: evolución del balance */}
         <div className={`${glassCard} p-6 lg:col-span-2 flex flex-col`}>
           <div className="flex justify-between items-start mb-6">
             <div>
@@ -193,7 +193,8 @@ export default function EstadisticasPage() {
                   <XAxis dataKey="mes" tick={{ fill: "#bbcabf", fontSize: 11 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     contentStyle={{ backgroundColor: "#161d19", borderColor: "#3c4a42", color: "#dde4dd", borderRadius: 8 }}
-                    formatter={(v: any) => formatoEUR(Number(v))}
+                    formatter={(v: any) => [formatoEUR(Number(v)), "Balance"]}
+                    labelStyle={{ color: "#dde4dd" }}
                   />
                   <Area type="monotone" dataKey="value" stroke="#4edea3" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
                 </AreaChart>
@@ -202,7 +203,6 @@ export default function EstadisticasPage() {
           </div>
         </div>
 
-        {/* Insights */}
         <div className="flex flex-col gap-4">
           <div className={`${glassCard} p-6 flex-1 flex flex-col justify-center`}>
             <div className="w-10 h-10 rounded-full bg-[#4edea3]/20 flex items-center justify-center mb-4">
@@ -227,9 +227,7 @@ export default function EstadisticasPage() {
         </div>
       </div>
 
-      {/* Bottom charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* BarChart: ingresos vs gastos */}
         <div className={`${glassCard} p-6`}>
           <h3 className="text-lg font-semibold text-[#dde4dd] mb-6">Ingresos vs Gastos</h3>
           <div className="h-[220px] w-full">
@@ -242,7 +240,7 @@ export default function EstadisticasPage() {
                   <Tooltip
                     cursor={{ fill: "#1a211d" }}
                     contentStyle={{ backgroundColor: "#161d19", borderColor: "#3c4a42", color: "#dde4dd", borderRadius: 8 }}
-                    formatter={(v: any) => formatoEUR(Number(v))}
+                    formatter={(v: any, name: string) => [formatoEUR(Number(v)), name === "ingresos" ? "Ingresos" : "Gastos"]}
                   />
                   <Bar dataKey="ingresos" fill="#4edea3" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="gastos" fill="#ffb4ab" radius={[4, 4, 0, 0]} />
@@ -252,7 +250,6 @@ export default function EstadisticasPage() {
           </div>
         </div>
 
-        {/* PieChart: gastos por categoría */}
         <div className={`${glassCard} p-6 flex flex-col md:flex-row items-center`}>
           <div className="h-[220px] w-full md:w-1/2">
             {gastosPorCategoria.length === 0 ? (
@@ -267,7 +264,7 @@ export default function EstadisticasPage() {
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: "#161d19", borderColor: "#3c4a42", color: "#dde4dd", borderRadius: 8 }}
-                    formatter={(v: any) => `${v}%`}
+                    formatter={(v: any) => [`${v}%`, "Porcentaje"]}
                   />
                 </PieChart>
               </ResponsiveContainer>

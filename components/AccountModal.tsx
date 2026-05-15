@@ -10,6 +10,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  // Si es true, oculta el botón "Cancelar" y refuerza visualmente que es obligatorio
+  mandatory?: boolean;
 };
 
 const TIPOS_CUENTA = [
@@ -19,10 +21,10 @@ const TIPOS_CUENTA = [
   { value: "ahorro",    label: "Ahorro",    icon: "wallet" },
 ];
 
-export default function AccountModal({ open, onClose, onSuccess }: Props) {
+export default function AccountModal({ open, onClose, onSuccess, mandatory = false }: Props) {
   const [nombre, setNombre] = useState("");
   const [tipo, setTipo] = useState("banco");
-  const [balanceInicial, setBalanceInicial] = useState("0");
+  const [balanceInicial, setBalanceInicial] = useState(""); // ya no se inicia a "0"
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +32,7 @@ export default function AccountModal({ open, onClose, onSuccess }: Props) {
     if (open) {
       setNombre("");
       setTipo("banco");
-      setBalanceInicial("0");
+      setBalanceInicial(""); // vacío para forzar al usuario a escribir
       setError(null);
     }
   }, [open]);
@@ -41,6 +43,16 @@ export default function AccountModal({ open, onClose, onSuccess }: Props) {
 
     if (!nombre.trim()) {
       setError("Introduce un nombre para la cuenta.");
+      return;
+    }
+    // Validación: el balance es obligatorio (no vacío) y debe ser un número >= 0
+    if (balanceInicial.trim() === "") {
+      setError("Introduce un balance inicial (puede ser 0).");
+      return;
+    }
+    const balanceNum = parseFloat(balanceInicial.replace(",", "."));
+    if (isNaN(balanceNum) || balanceNum < 0) {
+      setError("El balance inicial debe ser un número igual o mayor que 0.");
       return;
     }
 
@@ -56,7 +68,7 @@ export default function AccountModal({ open, onClose, onSuccess }: Props) {
     const { error: insertError } = await supabase.from("cuentas").insert({
       nombre: nombre.trim(),
       tipo,
-      balance_inicial: parseFloat(balanceInicial) || 0,
+      balance_inicial: balanceNum,
       id_usuario: user.id,
     });
 
@@ -74,8 +86,8 @@ export default function AccountModal({ open, onClose, onSuccess }: Props) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Nueva Cuenta"
-      subtitle="Crea una cuenta para organizar tu dinero"
+      title={mandatory ? "Crea tu primera cuenta" : "Nueva Cuenta"}
+      subtitle={mandatory ? "Es obligatorio tener al menos una cuenta para usar Tracki." : "Crea una cuenta para organizar tu dinero"}
       maxWidth="max-w-md"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -121,23 +133,25 @@ export default function AccountModal({ open, onClose, onSuccess }: Props) {
           </div>
         </div>
 
-        {/* Balance inicial */}
+        {/* Balance inicial (obligatorio) */}
         <div className="space-y-2">
           <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">
-            Balance inicial
+            Balance inicial *
           </label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-[#86948a] text-base">€</span>
             <input
               type="number"
               step="0.01"
-              placeholder="0,00"
+              min="0"
+              required
+              placeholder="Ej: 1500.00"
               value={balanceInicial}
               onChange={(e) => setBalanceInicial(e.target.value)}
               className="w-full bg-[#1a211d] border border-[#3c4a42] rounded-lg py-3 pl-8 pr-4 text-base text-[#dde4dd] focus:border-[#4edea3] focus:outline-none transition-colors"
             />
           </div>
-          <p className="text-xs text-[#86948a]">El dinero que ya tenías en esta cuenta antes de empezar a usar Tracki.</p>
+          <p className="text-xs text-[#86948a]">El dinero que ya tenías en esta cuenta antes de empezar a usar Tracki. Pon 0 si la cuenta está vacía.</p>
         </div>
 
         {/* Error */}
@@ -149,18 +163,21 @@ export default function AccountModal({ open, onClose, onSuccess }: Props) {
 
         {/* Acciones */}
         <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="flex-1 bg-[#1a211d] hover:bg-[#242c27] border border-[#3c4a42] text-[#dde4dd] py-3 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50"
-          >
-            Cancelar
-          </button>
+          {!mandatory && (
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 bg-[#1a211d] hover:bg-[#242c27] border border-[#3c4a42] text-[#dde4dd] py-3 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
             className="flex-1 bg-[#4edea3] hover:bg-[#6ffbbe] text-[#003824] py-3 rounded-lg font-bold transition-colors cursor-pointer disabled:opacity-50"
+            style={{ boxShadow: "0 0 20px rgba(78,222,163,0.2)" }}
           >
             {loading ? "Creando..." : "Crear cuenta"}
           </button>

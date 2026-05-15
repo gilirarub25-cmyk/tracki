@@ -5,15 +5,13 @@ import { createContext, useContext, useState, ReactNode } from "react";
 import TransactionModal from "@/components/TransactionModal";
 import AccountModal from "@/components/AccountModal";
 import GoalModal from "@/components/GoalModal";
+import AddProgressModal from "@/components/AddProgressModal";
 
-// El contexto expone:
-// - openTransactionModal / openAccountModal / openGoalModal: abren los modales
-// - refreshKey: número que cambia cada vez que se crea/edita/borra algo;
-//   las páginas pueden usarlo como dependencia en su useEffect para refetch.
 type ModalContextValue = {
   openTransactionModal: () => void;
   openAccountModal: () => void;
-  openGoalModal: (existing?: any) => void; // pasa objeto si es editar
+  openGoalModal: (existing?: any) => void;
+  openAddProgressModal: (goal: any) => void;
   refreshKey: number;
   triggerRefresh: () => void;
 };
@@ -22,6 +20,7 @@ const ModalContext = createContext<ModalContextValue>({
   openTransactionModal: () => {},
   openAccountModal: () => {},
   openGoalModal: () => {},
+  openAddProgressModal: () => {},
   refreshKey: 0,
   triggerRefresh: () => {},
 });
@@ -33,11 +32,12 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   const [accOpen, setAccOpen] = useState(false);
   const [goalOpen, setGoalOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<any | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [progressGoal, setProgressGoal] = useState<any | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const triggerRefresh = () => setRefreshKey((k) => k + 1);
 
-  // Al cerrar tras éxito, refrescamos los datos del usuario
   const onTransactionSuccess = () => {
     setTxOpen(false);
     triggerRefresh();
@@ -54,6 +54,12 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     triggerRefresh();
   };
 
+  const onProgressSuccess = () => {
+    setProgressOpen(false);
+    setProgressGoal(null);
+    triggerRefresh();
+  };
+
   return (
     <ModalContext.Provider
       value={{
@@ -63,13 +69,16 @@ export function ModalProvider({ children }: { children: ReactNode }) {
           setEditingGoal(existing ?? null);
           setGoalOpen(true);
         },
+        openAddProgressModal: (goal) => {
+          setProgressGoal(goal);
+          setProgressOpen(true);
+        },
         refreshKey,
         triggerRefresh,
       }}
     >
       {children}
 
-      {/* Modales */}
       <TransactionModal
         open={txOpen}
         onClose={() => setTxOpen(false)}
@@ -92,6 +101,15 @@ export function ModalProvider({ children }: { children: ReactNode }) {
         }}
         onSuccess={onGoalSuccess}
         editing={editingGoal}
+      />
+      <AddProgressModal
+        open={progressOpen}
+        goal={progressGoal}
+        onClose={() => {
+          setProgressOpen(false);
+          setProgressGoal(null);
+        }}
+        onSuccess={onProgressSuccess}
       />
     </ModalContext.Provider>
   );

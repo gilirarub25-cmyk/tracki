@@ -48,14 +48,14 @@ export default function Modal({
         aria-hidden
       />
 
-      {/* Diálogo */}
+      {/* Diálogo: limitado a 90vh y con scroll interno cuando se desborda */}
       <div
-        className={`relative ${maxWidth} w-full bg-[#161d19] border border-[#3c4a42]/60 rounded-2xl shadow-2xl`}
+        className={`relative ${maxWidth} w-full bg-[#161d19] border border-[#3c4a42]/60 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col`}
         style={{ boxShadow: "0 25px 50px rgba(0,0,0,0.5), 0 0 40px rgba(78,222,163,0.05)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-[#3c4a42]/40">
+        {/* Header fijo */}
+        <div className="flex items-start justify-between p-6 border-b border-[#3c4a42]/40 flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-[#dde4dd]">{title}</h2>
             {subtitle && <p className="text-sm text-[#bbcabf] mt-1">{subtitle}</p>}
@@ -71,8 +71,8 @@ export default function Modal({
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6">{children}</div>
+        {/* Body con scroll interno */}
+        <div className="p-6 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );

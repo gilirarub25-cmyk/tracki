@@ -58,8 +58,7 @@ export default function TransactionModal({
       if (catRes.data) setCategorias(catRes.data);
       if (cueRes.data) {
         setCuentas(cueRes.data);
-        // Selección por defecto: la primera cuenta del usuario
-        if (cueRes.data.length > 0 && idCuenta === null) {
+        if (cueRes.data.length > 0) {
           setIdCuenta(cueRes.data[0].id_cuenta);
         }
       }
@@ -80,10 +79,8 @@ export default function TransactionModal({
     }
   }, [open]);
 
-  // Filtrar categorías por el tipo seleccionado
   const categoriasFiltradas = categorias.filter((c) => c.tipo === tipo);
 
-  // Si cambia el tipo, resetear categoría
   useEffect(() => {
     setIdCategoria(null);
   }, [tipo]);
@@ -92,10 +89,6 @@ export default function TransactionModal({
     e.preventDefault();
     setSubmitError(null);
 
-    if (cuentas.length === 0) {
-      setSubmitError("Necesitas crear una cuenta primero.");
-      return;
-    }
     if (!idCategoria) {
       setSubmitError("Selecciona una categoría.");
       return;
@@ -112,9 +105,7 @@ export default function TransactionModal({
 
     setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setSubmitError("Sesión no válida.");
       setLoading(false);
@@ -141,15 +132,33 @@ export default function TransactionModal({
     onSuccess();
   };
 
+  // Si no hay cuentas, mostrar pantalla informativa en lugar del formulario
+  if (cuentas.length === 0 && open) {
+    return (
+      <Modal open={open} onClose={onClose} title="No tienes cuentas" subtitle="Necesitas al menos una cuenta para registrar transacciones">
+        <div className="flex flex-col items-center text-center py-4">
+          <div className="w-16 h-16 bg-[#1a211d] rounded-full flex items-center justify-center mb-4 border border-[#3c4a42]">
+            <Icon name="wallet" className="w-8 h-8 text-[#4edea3]" />
+          </div>
+          <p className="text-[#bbcabf] mb-6 max-w-sm">
+            Antes de registrar gastos o ingresos, crea una cuenta donde llevar el control de tu dinero (banco, efectivo, tarjeta...).
+          </p>
+          <button
+            onClick={onRequestNewAccount}
+            className="bg-[#4edea3] hover:bg-[#6ffbbe] text-[#003824] px-6 py-3 rounded-lg font-bold transition-colors cursor-pointer"
+            style={{ boxShadow: "0 0 20px rgba(78,222,163,0.2)" }}
+          >
+            Crear mi primera cuenta
+          </button>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Nueva Transacción"
-      subtitle="Registra un nuevo ingreso o gasto"
-    >
+    <Modal open={open} onClose={onClose} title="Nueva Transacción" subtitle="Registra un nuevo ingreso o gasto">
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Tipo (Ingreso/Gasto) */}
+        {/* Tipo */}
         <div className="grid grid-cols-2 gap-2 bg-[#1a211d] p-1 rounded-lg border border-[#3c4a42]/40">
           <button
             type="button"
@@ -177,9 +186,7 @@ export default function TransactionModal({
 
         {/* Monto */}
         <div className="space-y-2">
-          <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">
-            Monto
-          </label>
+          <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">Monto</label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-[#86948a] text-base">€</span>
             <input
@@ -211,10 +218,8 @@ export default function TransactionModal({
 
         {/* Categoría */}
         <div className="space-y-2">
-          <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">
-            Categoría
-          </label>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+          <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">Categoría</label>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {categoriasFiltradas.map((cat) => {
               const isActive = idCategoria === cat.id_categoria;
               return (
@@ -243,36 +248,22 @@ export default function TransactionModal({
         {/* Cuenta + Fecha */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">
-              Cuenta
-            </label>
-            {cuentas.length === 0 ? (
-              <button
-                type="button"
-                onClick={onRequestNewAccount}
-                className="w-full bg-[#1a211d] border border-dashed border-[#3c4a42] rounded-lg py-3 px-4 text-sm text-[#4edea3] hover:bg-[#242c27] transition-colors cursor-pointer"
-              >
-                + Crear cuenta
-              </button>
-            ) : (
-              <select
-                value={idCuenta ?? ""}
-                onChange={(e) => setIdCuenta(Number(e.target.value))}
-                className="w-full bg-[#1a211d] border border-[#3c4a42] rounded-lg py-3 px-3 text-sm text-[#dde4dd] focus:border-[#4edea3] focus:outline-none transition-colors cursor-pointer"
-              >
-                {cuentas.map((c) => (
-                  <option key={c.id_cuenta} value={c.id_cuenta}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-            )}
+            <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">Cuenta</label>
+            <select
+              value={idCuenta ?? ""}
+              onChange={(e) => setIdCuenta(Number(e.target.value))}
+              className="w-full bg-[#1a211d] border border-[#3c4a42] rounded-lg py-3 px-3 text-sm text-[#dde4dd] focus:border-[#4edea3] focus:outline-none transition-colors cursor-pointer"
+            >
+              {cuentas.map((c) => (
+                <option key={c.id_cuenta} value={c.id_cuenta}>
+                  {c.nombre}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">
-              Fecha
-            </label>
+            <label className="block text-xs uppercase font-bold text-[#bbcabf] tracking-wider">Fecha</label>
             <input
               type="date"
               required
@@ -283,16 +274,13 @@ export default function TransactionModal({
           </div>
         </div>
 
-        {/* Aviso para crear cuenta adicional */}
-        {cuentas.length > 0 && (
-          <button
-            type="button"
-            onClick={onRequestNewAccount}
-            className="text-xs text-[#4edea3] hover:text-[#6ffbbe] transition-colors cursor-pointer"
-          >
-            + Crear otra cuenta
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onRequestNewAccount}
+          className="text-xs text-[#4edea3] hover:text-[#6ffbbe] transition-colors cursor-pointer"
+        >
+          + Crear otra cuenta
+        </button>
 
         {/* Error */}
         {submitError && (

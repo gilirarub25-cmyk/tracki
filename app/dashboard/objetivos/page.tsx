@@ -23,7 +23,6 @@ type Objetivo = {
   completado: boolean;
 };
 
-// Tarjeta de objetivo
 function GoalCard({
   goal,
   onEdit,
@@ -49,7 +48,6 @@ function GoalCard({
 
   return (
     <div className={`${glassCard} p-6 flex flex-col justify-between group relative`}>
-      {/* Botones de acción */}
       <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={onEdit}
@@ -67,11 +65,10 @@ function GoalCard({
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
-        </svg>
+          </svg>
         </button>
       </div>
 
-      {/* Cabecera */}
       <div className="flex items-start gap-3 mb-6">
         <div className="w-12 h-12 rounded-xl bg-[#1a211d] flex items-center justify-center border border-[#3c4a42] flex-shrink-0">
           <Icon name={goal.icono || "target"} className="w-6 h-6 text-[#4edea3]" />
@@ -89,7 +86,6 @@ function GoalCard({
         </div>
       </div>
 
-      {/* Progreso */}
       <div className="mt-auto">
         <div className="flex items-end justify-between mb-2">
           <div>
@@ -99,9 +95,7 @@ function GoalCard({
               <span className="text-sm text-[#bbcabf] font-normal">/ {formatoEUR(objetivo)}</span>
             </p>
           </div>
-          <span className={`text-lg font-bold ${goal.completado ? "text-[#4edea3]" : "text-[#4edea3]"}`}>
-            {percent}%
-          </span>
+          <span className="text-lg font-bold text-[#4edea3]">{percent}%</span>
         </div>
         <div className="w-full h-2 bg-[#1a211d] rounded-full overflow-hidden">
           <div
@@ -113,7 +107,6 @@ function GoalCard({
           />
         </div>
 
-        {/* Acción rápida */}
         <button
           onClick={onAddProgress}
           className="mt-4 w-full bg-[#1a211d] hover:bg-[#242c27] border border-[#3c4a42] text-[#dde4dd] py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
@@ -125,7 +118,6 @@ function GoalCard({
   );
 }
 
-// Métrica compacta
 function MetricCard({
   label,
   value,
@@ -156,9 +148,8 @@ export default function ObjetivosPage() {
   const [loading, setLoading] = useState(true);
   const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
   const [ahorroMensual, setAhorroMensual] = useState(0);
-  const { refreshKey, triggerRefresh, openGoalModal } = useModal();
+  const { refreshKey, triggerRefresh, openGoalModal, openAddProgressModal } = useModal();
 
-  // Fetch
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -170,7 +161,6 @@ export default function ObjetivosPage() {
 
       setObjetivos((goals as Objetivo[]) || []);
 
-      // Ahorro mensual: ingresos - gastos del mes actual
       const now = new Date();
       const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1)
         .toISOString()
@@ -196,7 +186,6 @@ export default function ObjetivosPage() {
     fetchData();
   }, [refreshKey]);
 
-  // Métricas calculadas
   const { completados, progresoPromedio } = useMemo(() => {
     const comp = objetivos.filter((o) => o.completado).length;
     const prom =
@@ -213,35 +202,11 @@ export default function ObjetivosPage() {
     return { completados: comp, progresoPromedio: prom };
   }, [objetivos]);
 
-  // Acciones
   const handleDelete = async (id: number) => {
     if (!confirm("¿Eliminar este objetivo?")) return;
     const { error } = await supabase.from("objetivos").delete().eq("id_objetivo", id);
     if (error) {
       alert("Error al eliminar: " + error.message);
-      return;
-    }
-    triggerRefresh();
-  };
-
-  const handleAddProgress = async (goal: Objetivo) => {
-    const input = prompt(`¿Cuánto añades a "${goal.titulo}"?`, "10");
-    if (input === null) return;
-    const cantidad = parseFloat(input.replace(",", "."));
-    if (isNaN(cantidad) || cantidad <= 0) {
-      alert("Cantidad no válida.");
-      return;
-    }
-    const nuevoActual = Number(goal.monto_actual) + cantidad;
-    const completado = nuevoActual >= Number(goal.monto_objetivo);
-
-    const { error } = await supabase
-      .from("objetivos")
-      .update({ monto_actual: nuevoActual, completado })
-      .eq("id_objetivo", goal.id_objetivo);
-
-    if (error) {
-      alert("Error: " + error.message);
       return;
     }
     triggerRefresh();
@@ -254,7 +219,6 @@ export default function ObjetivosPage() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
 
-      {/* Cabecera */}
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <p className="text-xs font-bold tracking-widest text-[#4edea3] uppercase mb-1">Ambiciones Financieras</p>
@@ -272,7 +236,6 @@ export default function ObjetivosPage() {
         </button>
       </header>
 
-      {/* Lista de objetivos */}
       {objetivos.length === 0 ? (
         <div className={`${glassCard} flex flex-col items-center justify-center py-16 text-center`}>
           <div className="w-16 h-16 bg-[#1a211d] rounded-full flex items-center justify-center mb-4 border border-[#3c4a42]">
@@ -280,7 +243,7 @@ export default function ObjetivosPage() {
           </div>
           <h3 className="text-xl font-semibold text-[#dde4dd] mb-2">Aún no tienes objetivos</h3>
           <p className="text-[#bbcabf] max-w-md mb-6">
-            Crea tu primer objetivo financiero para empezar a trackear tu progreso hacia esa casa, coche o viaje de tus sueños.
+            Crea tu primer objetivo financiero para empezar a trackear tu progreso.
           </p>
           <button
             onClick={() => openGoalModal()}
@@ -297,13 +260,12 @@ export default function ObjetivosPage() {
               goal={g}
               onEdit={() => openGoalModal(g)}
               onDelete={() => handleDelete(g.id_objetivo)}
-              onAddProgress={() => handleAddProgress(g)}
+              onAddProgress={() => openAddProgressModal(g)}
             />
           ))}
         </div>
       )}
 
-      {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <MetricCard
           label="Ahorro Mensual"
