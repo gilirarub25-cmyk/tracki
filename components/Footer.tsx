@@ -10,7 +10,7 @@ export default function Footer() {
     <footer className="w-full py-6 px-6 md:px-8 bg-[#0e1511]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
         <p className="text-xs text-[#86948a]">
-          © 2024 Tracki. Todos los derechos reservados.
+          © 2026 Tracki. Todos los derechos reservados.
         </p>
         <div className="flex items-center gap-6 text-xs text-[#86948a]">
           <Link href="#" className="hover:text-[#dde4dd] transition-colors">Privacidad</Link>
