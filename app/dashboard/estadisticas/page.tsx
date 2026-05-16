@@ -9,20 +9,14 @@ import {
 import { supabase } from "@/lib/supabase";
 import Icon from "@/components/Icon";
 import { useModal } from "@/contexts/ModalContext";
+import { useAccountFilter } from "@/contexts/AccountFilterContext";
 
 const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl";
 
 const formatoEUR = (n: number) =>
   n.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
 
-// Nombres de mes en español, formato corto y capitalizado
 const MESES_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-
-// Etiqueta legible para el eje X: "May 2026" (no "may 26")
-const etiquetaMes = (fechaIso: string): string => {
-  const d = new Date(fechaIso);
-  return `${MESES_ES[d.getMonth()]} ${d.getFullYear()}`;
-};
 
 type Periodo = "mensual" | "trimestral" | "anual";
 
@@ -49,6 +43,7 @@ export default function EstadisticasPage() {
   const [transacciones, setTransacciones] = useState<TxRaw[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("mensual");
   const { refreshKey } = useModal();
+  const { selectedAccountId, selectedAccount } = useAccountFilter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,6 +71,7 @@ export default function EstadisticasPage() {
         .order("fecha", { ascending: true });
 
       if (desde) query = query.gte("fecha", desde);
+      if (selectedAccountId !== null) query = query.eq("id_cuenta", selectedAccountId);
 
       const { data } = await query;
       setTransacciones((data as any[]) || []);
@@ -83,9 +79,9 @@ export default function EstadisticasPage() {
     };
 
     fetchData();
-  }, [refreshKey, periodo]);
+  }, [refreshKey, periodo, selectedAccountId]);
 
-  // Agrupar por mes (clave YYYY-MM, valor: { mes, ingresos, gastos })
+  // Agrupar por mes
   const datosPorMes = useMemo(() => {
     const map = new Map<string, { mes: string; ingresos: number; gastos: number }>();
 
@@ -104,7 +100,6 @@ export default function EstadisticasPage() {
       .map(([, v]) => v);
   }, [transacciones]);
 
-  // Evolución del balance acumulado
   const evolucionBalance = useMemo(() => {
     let acumulado = 0;
     return datosPorMes.map((m) => {
@@ -113,7 +108,6 @@ export default function EstadisticasPage() {
     });
   }, [datosPorMes]);
 
-  // Gastos por categoría
   const gastosPorCategoria = useMemo(() => {
     const map = new Map<string, { nombre: string; valor: number; color: string }>();
     transacciones.filter((t) => t.tipo === "gasto").forEach((t) => {
@@ -148,7 +142,9 @@ export default function EstadisticasPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           <p className="text-xs font-bold tracking-widest text-[#4edea3] uppercase mb-1">Analíticas de Rendimiento</p>
-          <h1 className="text-3xl font-semibold text-[#dde4dd]">Tus Estadísticas</h1>
+          <h1 className="text-3xl font-semibold text-[#dde4dd]">
+            {selectedAccount ? `Estadísticas de ${selectedAccount.nombre}` : "Tus Estadísticas"}
+          </h1>
         </div>
         <div className="flex bg-[#1a211d] p-1 rounded-lg border border-[#3c4a42]/40">
           {(["mensual", "trimestral", "anual"] as Periodo[]).map((p) => (
@@ -240,7 +236,7 @@ export default function EstadisticasPage() {
                   <Tooltip
                     cursor={{ fill: "#1a211d" }}
                     contentStyle={{ backgroundColor: "#161d19", borderColor: "#3c4a42", color: "#dde4dd", borderRadius: 8 }}
-                    formatter={(v: any, name: string) => [formatoEUR(Number(v)), name === "ingresos" ? "Ingresos" : "Gastos"]}
+                    formatter={(v: any, name: any) => [formatoEUR(Number(v)), name === "ingresos" ? "Ingresos" : "Gastos"]}
                   />
                   <Bar dataKey="ingresos" fill="#4edea3" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="gastos" fill="#ffb4ab" radius={[4, 4, 0, 0]} />

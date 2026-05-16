@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 import Icon from "@/components/Icon";
 import { useModal } from "@/contexts/ModalContext";
+import { useAccountFilter } from "@/contexts/AccountFilterContext";
 
 const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl";
 
@@ -37,8 +38,8 @@ export default function TransaccionesPage() {
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("todos");
   const { refreshKey, triggerRefresh, openTransactionModal } = useModal();
+  const { selectedAccountId, selectedAccount } = useAccountFilter();
 
-  // Fetch
   useEffect(() => {
     const fetchTx = async () => {
       setLoading(true);
@@ -53,7 +54,7 @@ export default function TransaccionesPage() {
         .order("fecha", { ascending: false })
         .order("creado_en", { ascending: false });
 
-      // Filtro por periodo
+      // Periodo
       const now = new Date();
       if (periodo === "mes") {
         const inicio = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
@@ -66,10 +67,11 @@ export default function TransaccionesPage() {
         query = query.gte("fecha", inicioAnio);
       }
 
-      // Filtro por tipo
-      if (filtroTipo !== "todos") {
-        query = query.eq("tipo", filtroTipo);
-      }
+      // Tipo
+      if (filtroTipo !== "todos") query = query.eq("tipo", filtroTipo);
+
+      // Cuenta seleccionada
+      if (selectedAccountId !== null) query = query.eq("id_cuenta", selectedAccountId);
 
       const { data } = await query;
       setTransacciones((data as any[]) || []);
@@ -77,9 +79,8 @@ export default function TransaccionesPage() {
     };
 
     fetchTx();
-  }, [refreshKey, periodo, filtroTipo]);
+  }, [refreshKey, periodo, filtroTipo, selectedAccountId]);
 
-  // Resumen calculado
   const { ingresos, gastos, ahorro, tasa } = useMemo(() => {
     let ing = 0;
     let gas = 0;
@@ -92,7 +93,6 @@ export default function TransaccionesPage() {
     return { ingresos: ing, gastos: gas, ahorro: a, tasa: t };
   }, [transacciones]);
 
-  // Eliminar transacción
   const handleDelete = async (id: number) => {
     if (!confirm("¿Eliminar esta transacción?")) return;
     const { error } = await supabase.from("transacciones").delete().eq("id_transaccion", id);
@@ -103,7 +103,6 @@ export default function TransaccionesPage() {
     triggerRefresh();
   };
 
-  // Exportar CSV
   const handleExport = () => {
     if (transacciones.length === 0) return;
     const headers = ["Fecha", "Tipo", "Categoría", "Cuenta", "Descripción", "Monto"];
@@ -131,11 +130,12 @@ export default function TransaccionesPage() {
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6">
-      {/* Cabecera */}
       <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
         <div>
           <p className="text-xs font-bold tracking-widest text-[#4edea3] uppercase mb-1">Historial Detallado</p>
-          <h1 className="text-3xl font-semibold text-[#dde4dd]">Movimientos Financieros</h1>
+          <h1 className="text-3xl font-semibold text-[#dde4dd]">
+            {selectedAccount ? selectedAccount.nombre : "Movimientos Financieros"}
+          </h1>
         </div>
         <button
           onClick={openTransactionModal}
@@ -149,7 +149,6 @@ export default function TransaccionesPage() {
         </button>
       </header>
 
-      {/* Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className={`${glassCard} p-6`}>
           <p className="text-[10px] uppercase font-bold text-[#bbcabf] mb-2 flex justify-between items-center">
@@ -175,7 +174,6 @@ export default function TransaccionesPage() {
         </div>
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <div className="flex gap-4 w-full sm:w-auto">
           <select
@@ -207,7 +205,6 @@ export default function TransaccionesPage() {
         </button>
       </div>
 
-      {/* Lista */}
       <div className={`${glassCard} p-6 mb-6`}>
         <div className="flex justify-between items-center mb-4 px-2">
           <h3 className="text-sm font-semibold text-[#dde4dd]">Movimientos Recientes</h3>

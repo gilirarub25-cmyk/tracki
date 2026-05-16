@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import Icon from "@/components/Icon";
 import { useModal } from "@/contexts/ModalContext";
+import { useAccountFilter } from "@/contexts/AccountFilterContext";
 
-// Helpers
 const colorPorValor = (valor: number, tipo: "ingreso" | "gasto" | "balance"): string => {
   if (valor === 0) return "text-[#dde4dd]";
   if (tipo === "ingreso") return "text-[#4edea3]";
@@ -34,6 +34,7 @@ export default function DashboardIndex() {
   const [ingresosTotales, setIngresosTotales] = useState(0);
   const [gastosTotales, setGastosTotales] = useState(0);
   const { refreshKey, openTransactionModal } = useModal();
+  const { selectedAccountId, selectedAccount } = useAccountFilter();
 
   const balance = ingresosTotales - gastosTotales;
 
@@ -47,7 +48,6 @@ export default function DashboardIndex() {
         return;
       }
 
-      // Nombre del user (desde la tabla usuarios)
       const { data: userData } = await supabase
         .from("usuarios")
         .select("nombre")
@@ -55,17 +55,19 @@ export default function DashboardIndex() {
         .single();
       setUserName(userData?.nombre || user.email?.split("@")[0] || "Usuario");
 
-      // Mes actual
       const now = new Date();
       const inicioMes = new Date(now.getFullYear(), now.getMonth(), 1)
         .toISOString()
         .split("T")[0];
 
-      // Transacciones del mes (para totales)
-      const { data: txMes } = await supabase
+      // Totales del mes (con filtro de cuenta si aplica)
+      let queryMes = supabase
         .from("transacciones")
         .select("monto, tipo")
         .gte("fecha", inicioMes);
+      if (selectedAccountId !== null) queryMes = queryMes.eq("id_cuenta", selectedAccountId);
+
+      const { data: txMes } = await queryMes;
 
       if (txMes) {
         let ing = 0;
@@ -78,8 +80,8 @@ export default function DashboardIndex() {
         setGastosTotales(gas);
       }
 
-      // Últimas 5 transacciones (con JOIN)
-      const { data: ultimas } = await supabase
+      // Últimas 5 transacciones (con filtro de cuenta si aplica)
+      let queryUltimas = supabase
         .from("transacciones")
         .select(`
           id_transaccion, monto, descripcion, fecha, tipo,
@@ -89,13 +91,16 @@ export default function DashboardIndex() {
         .order("fecha", { ascending: false })
         .order("creado_en", { ascending: false })
         .limit(5);
+      if (selectedAccountId !== null) queryUltimas = queryUltimas.eq("id_cuenta", selectedAccountId);
+
+      const { data: ultimas } = await queryUltimas;
 
       setTransacciones((ultimas as any[]) || []);
       setLoading(false);
     };
 
     fetchData();
-  }, [refreshKey]);
+  }, [refreshKey, selectedAccountId]);
 
   const glassCard = "bg-[#161d19] border border-[#3c4a42]/40 rounded-xl p-6";
 
@@ -113,9 +118,11 @@ export default function DashboardIndex() {
             Hola, <span className="capitalize">{userName}</span>
           </h1>
           <p className="text-[#bbcabf] mt-1">
-            {transacciones.length === 0
-              ? "Aquí tienes tu resumen financiero, aún no tienes movimientos."
-              : `Resumen de tu actividad financiera este mes.`}
+            {selectedAccount
+              ? `Resumen de "${selectedAccount.nombre}" este mes.`
+              : transacciones.length === 0
+                ? "Aquí tienes tu resumen financiero, aún no tienes movimientos."
+                : "Resumen de tu actividad financiera este mes."}
           </p>
         </div>
         <button
@@ -166,7 +173,11 @@ export default function DashboardIndex() {
         {transacciones.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-12">
             <Icon name="wallet" className="w-10 h-10 text-[#3c4a42] mb-3" />
-            <p className="text-[#bbcabf] text-sm mb-4">Tu historial está vacío.</p>
+            <p className="text-[#bbcabf] text-sm mb-4">
+              {selectedAccount
+                ? `Esta cuenta aún no tiene movimientos.`
+                : "Tu historial está vacío."}
+            </p>
             <button
               onClick={openTransactionModal}
               className="text-sm text-[#4edea3] hover:text-[#6ffbbe] transition-colors cursor-pointer"

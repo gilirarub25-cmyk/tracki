@@ -1,46 +1,23 @@
 // components/AccountGuard.tsx
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import Icon from "./Icon";
 import { useModal } from "@/contexts/ModalContext";
+import { useAccountFilter } from "@/contexts/AccountFilterContext";
 
-// Este componente envuelve el contenido del dashboard y, si el usuario
-// no tiene NINGUNA cuenta, muestra una pantalla obligatoria de onboarding.
-// La página /dashboard/cuentas está exenta porque es donde se crean.
+// Bloquea el dashboard si el usuario no tiene NINGUNA cuenta.
+// Excepción: la ruta /dashboard/cuentas siempre es accesible
+// (es donde se crea la primera cuenta).
 export default function AccountGuard({ children }: { children: React.ReactNode }) {
-  const [hasAccounts, setHasAccounts] = useState<boolean | null>(null);
-  const { refreshKey, openAccountModal } = useModal();
+  const { cuentas, loadingCuentas } = useAccountFilter();
+  const { openAccountModal } = useModal();
   const pathname = usePathname();
 
-  // La página de cuentas está exenta del guard: el usuario debe poder
-  // entrar ahí aunque no tenga ninguna cuenta para crear la primera.
   const exenta = pathname === "/dashboard/cuentas";
 
-  useEffect(() => {
-    if (exenta) {
-      setHasAccounts(true); // marcamos como "ok" para que pase los children
-      return;
-    }
-
-    const check = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase
-        .from("cuentas")
-        .select("id_cuenta")
-        .limit(1);
-
-      setHasAccounts((data?.length || 0) > 0);
-    };
-    check();
-  }, [refreshKey, exenta]);
-
   // Carga inicial
-  if (hasAccounts === null) {
+  if (loadingCuentas) {
     return (
       <div className="flex-grow flex items-center justify-center p-8 text-[#bbcabf]">
         Cargando...
@@ -48,8 +25,11 @@ export default function AccountGuard({ children }: { children: React.ReactNode }
     );
   }
 
+  // Si está en /dashboard/cuentas, no bloqueamos
+  if (exenta) return <>{children}</>;
+
   // Sin cuentas → onboarding obligatorio
-  if (!hasAccounts) {
+  if (cuentas.length === 0) {
     return (
       <div className="flex-grow flex items-center justify-center p-6">
         <div className="bg-[#161d19] border border-[#3c4a42]/40 rounded-2xl p-8 max-w-md w-full text-center">

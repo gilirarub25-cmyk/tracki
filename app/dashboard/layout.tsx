@@ -2,11 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { supabase } from "@/lib/supabase";
 import { ModalProvider, useModal } from "@/contexts/ModalContext";
+import { AccountFilterProvider } from "@/contexts/AccountFilterContext";
 import AccountGuard from "@/components/AccountGuard";
 
 const neonGlow: React.CSSProperties = {
@@ -20,7 +20,6 @@ const Icons = {
   goals: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>,
   accounts: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
   help: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-  logout: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>,
   add: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
   home: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
 };
@@ -35,14 +34,7 @@ const NAV_ITEMS = [
 
 function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { openTransactionModal } = useModal();
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    document.cookie = "tracki_session=; path=/; max-age=0";
-    router.push("/");
-  };
 
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-16 h-[calc(100vh-64px)] w-64 p-6 space-y-4 z-40 bg-[#161d19] border-r border-[#3c4a42]/40">
@@ -68,17 +60,9 @@ function Sidebar() {
         >
           {Icons.add}<span>Nueva Transacción</span>
         </button>
-        <div className="space-y-1">
-          <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300 cursor-pointer">
-            {Icons.help}<span>Centro de Ayuda</span>
-          </button>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300 cursor-pointer"
-          >
-            {Icons.logout}<span>Cerrar Sesión</span>
-          </button>
-        </div>
+        <button className="w-full flex items-center space-x-3 px-4 py-2 rounded-lg text-[#bbcabf] hover:bg-[#1a211d] hover:text-[#dde4dd] text-sm font-medium transition-all duration-300 cursor-pointer">
+          {Icons.help}<span>Centro de Ayuda</span>
+        </button>
       </div>
     </aside>
   );
@@ -132,8 +116,12 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
+    // Orden de providers: ModalProvider DEBE envolver a AccountFilterProvider
+    // porque éste usa useModal() internamente para reaccionar a refreshKey.
     <ModalProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <AccountFilterProvider>
+        <DashboardShell>{children}</DashboardShell>
+      </AccountFilterProvider>
     </ModalProvider>
   );
 }
