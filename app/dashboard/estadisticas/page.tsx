@@ -41,6 +41,7 @@ const EmptyChartState = ({ message }: { message: string }) => (
 export default function EstadisticasPage() {
   const [loading, setLoading] = useState(true);
   const [transacciones, setTransacciones] = useState<TxRaw[]>([]);
+  const [balanceInicial, setBalanceInicial] = useState(0);
   const [periodo, setPeriodo] = useState<Periodo>("mensual");
   const { refreshKey } = useModal();
   const { selectedAccountId, selectedAccount } = useAccountFilter();
@@ -75,6 +76,15 @@ export default function EstadisticasPage() {
 
       const { data } = await query;
       setTransacciones((data as any[]) || []);
+
+      // Cargar balance inicial de las cuentas filtradas para sumarlo
+      // como punto de partida del balance acumulado.
+      let queryCuentas = supabase.from("cuentas").select("balance_inicial");
+      if (selectedAccountId !== null) queryCuentas = queryCuentas.eq("id_cuenta", selectedAccountId);
+      const { data: cuentasData } = await queryCuentas;
+      const balInicial = (cuentasData || []).reduce((s: number, c: any) => s + Number(c.balance_inicial), 0);
+      setBalanceInicial(balInicial);
+
       setLoading(false);
     };
 
@@ -101,12 +111,12 @@ export default function EstadisticasPage() {
   }, [transacciones]);
 
   const evolucionBalance = useMemo(() => {
-    let acumulado = 0;
+    let acumulado = balanceInicial; // Punto de partida real, no 0.
     return datosPorMes.map((m) => {
       acumulado += m.ingresos - m.gastos;
       return { mes: m.mes, value: acumulado };
     });
-  }, [datosPorMes]);
+  }, [datosPorMes, balanceInicial]);
 
   const gastosPorCategoria = useMemo(() => {
     const map = new Map<string, { nombre: string; valor: number; color: string }>();
@@ -129,7 +139,9 @@ export default function EstadisticasPage() {
       }));
   }, [transacciones]);
 
-  const balanceTotal = evolucionBalance.length > 0 ? evolucionBalance[evolucionBalance.length - 1].value : 0;
+  const balanceTotal = evolucionBalance.length > 0
+    ? evolucionBalance[evolucionBalance.length - 1].value
+    : balanceInicial;
   const mayorGasto = gastosPorCategoria[0];
 
   if (loading) {

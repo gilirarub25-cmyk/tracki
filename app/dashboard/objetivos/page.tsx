@@ -148,6 +148,7 @@ export default function ObjetivosPage() {
   const [loading, setLoading] = useState(true);
   const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
   const [ahorroMensual, setAhorroMensual] = useState(0);
+  const [balanceTotal, setBalanceTotal] = useState(0);
   const { refreshKey, triggerRefresh, openGoalModal, openAddProgressModal } = useModal();
 
   useEffect(() => {
@@ -179,6 +180,16 @@ export default function ObjetivosPage() {
         });
         setAhorroMensual(ahorro);
       }
+
+      // Balance total real: balance_inicial de todas las cuentas + Σtransacciones.
+      const { data: cuentasData } = await supabase.from("cuentas").select("balance_inicial");
+      let bal = (cuentasData || []).reduce((s: number, c: any) => s + Number(c.balance_inicial), 0);
+      const { data: txAll } = await supabase.from("transacciones").select("monto, tipo");
+      (txAll || []).forEach((t: any) => {
+        if (t.tipo === "ingreso") bal += Number(t.monto);
+        else bal -= Number(t.monto);
+      });
+      setBalanceTotal(bal);
 
       setLoading(false);
     };
@@ -268,11 +279,11 @@ export default function ObjetivosPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
         <MetricCard
-          label="Ahorro Mensual"
-          value={formatoEUR(ahorroMensual)}
+          label="Balance Total"
+          value={formatoEUR(balanceTotal)}
           icon="money"
-          iconColor={ahorroMensual >= 0 ? "text-[#4edea3]" : "text-[#ffb4ab]"}
-          highlight={ahorroMensual > 0}
+          iconColor={balanceTotal >= 0 ? "text-[#4edea3]" : "text-[#ffb4ab]"}
+          highlight={balanceTotal > 0}
         />
         <MetricCard
           label="Progreso Promedio"

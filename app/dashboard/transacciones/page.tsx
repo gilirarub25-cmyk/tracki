@@ -35,6 +35,7 @@ type FiltroTipo = "todos" | "ingreso" | "gasto";
 export default function TransaccionesPage() {
   const [loading, setLoading] = useState(true);
   const [transacciones, setTransacciones] = useState<Tx[]>([]);
+  const [balanceInicial, setBalanceInicial] = useState(0);
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [filtroTipo, setFiltroTipo] = useState<FiltroTipo>("todos");
   const { refreshKey, triggerRefresh, openTransactionModal } = useModal();
@@ -75,6 +76,15 @@ export default function TransaccionesPage() {
 
       const { data } = await query;
       setTransacciones((data as any[]) || []);
+
+      // Sumar balance_inicial de las cuentas filtradas al ahorro neto.
+      let queryCuentas = supabase.from("cuentas").select("balance_inicial");
+      if (selectedAccountId !== null) queryCuentas = queryCuentas.eq("id_cuenta", selectedAccountId);
+      const { data: cuentasData } = await queryCuentas;
+      setBalanceInicial(
+        (cuentasData || []).reduce((s: number, c: any) => s + Number(c.balance_inicial), 0)
+      );
+
       setLoading(false);
     };
 
@@ -88,10 +98,10 @@ export default function TransaccionesPage() {
       if (t.tipo === "ingreso") ing += Number(t.monto);
       else gas += Number(t.monto);
     });
-    const a = ing - gas;
-    const t = ing > 0 ? Math.round((a / ing) * 100) : 0;
+    const a = balanceInicial + ing - gas;
+    const t = (balanceInicial + ing) > 0 ? Math.round((a / (balanceInicial + ing)) * 100) : 0;
     return { ingresos: ing, gastos: gas, ahorro: a, tasa: t };
-  }, [transacciones]);
+  }, [transacciones, balanceInicial]);
 
   const handleDelete = async (id: number) => {
     if (!confirm("¿Eliminar esta transacción?")) return;

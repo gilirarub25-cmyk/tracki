@@ -26,7 +26,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * @param request - Objeto NextRequest con información de la petición entrante
  * @returns       NextResponse: redirección a /login o continuación normal
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   // Lectura de la cookie de sesión establecida tras el login exitoso
   const session = request.cookies.get("tracki_session");
   const isAuthenticated = session?.value === "true";
