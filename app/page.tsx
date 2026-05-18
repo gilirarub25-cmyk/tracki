@@ -1,16 +1,41 @@
-// app/page.tsx
+/**
+ * app/page.tsx
+ * ---------------------------------------------------------------------------
+ * Página de aterrizaje pública. Es la primera impresión que recibe cualquier
+ * visitante de Tracki: presenta la propuesta de valor, ofrece pruebas
+ * visuales de la aplicación (mockup), enumera las características principales
+ * y termina con dos CTA (call-to-action) hacia el registro.
+ *
+ * El diseño hace uso intensivo de Framer Motion para implementar:
+ *   - Cascada animada del Hero (staggered fade-in)
+ *   - Flotación continua del mockup
+ *   - Revelación al hacer scroll (whileInView)
+ *   - Micro-interacciones de hover y tap en botones
+ *   - Bento grid asimétrico para las features
+ *
+ * Marcado como Client Component porque Framer Motion necesita ejecutarse
+ * en el navegador para registrar eventos de scroll y hover.
+ */
 "use client";
 
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import Footer from "@/components/Footer";
 
-// ──────────────────────────────────────────────────────────────
-// Easing premium tipo Apple
-// ──────────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════════════════
+ *  Configuración global de animaciones
+ *  ════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Curva de easing inspirada en el lenguaje visual de Apple. Acelera
+ * suavemente al inicio y se asienta con desaceleración pronunciada.
+ */
 const EASE_OUT_EXPO = [0.16, 1, 0.3, 1] as const;
 
-// Variants reutilizables
+/**
+ * Variants para el contenedor del Hero. Aplica `staggerChildren` para
+ * que cada hijo entre en cascada con un desfase de 120 ms.
+ */
 const heroContainer: Variants = {
   hidden: {},
   visible: {
@@ -18,42 +43,69 @@ const heroContainer: Variants = {
   },
 };
 
+/**
+ * Variants aplicadas a cada elemento individual del Hero (badge, título,
+ * párrafo, botones, prueba social). Combinan opacidad y desplazamiento.
+ */
 const heroItem: Variants = {
   hidden: { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE_OUT_EXPO } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: EASE_OUT_EXPO },
+  },
 };
 
+/** Variants para revelación al hacer scroll (whileInView). */
 const scrollReveal: Variants = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE_OUT_EXPO } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: EASE_OUT_EXPO },
+  },
 };
 
+/** Variants para revelación con efecto de escala (usado en el CTA final). */
 const scrollRevealScale: Variants = {
   hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: EASE_OUT_EXPO } },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.8, ease: EASE_OUT_EXPO },
+  },
 };
 
-// Tap/hover springs
+// Configuración compartida para micro-interacciones de botones
 const buttonHover = { scale: 1.05 };
 const buttonTap = { scale: 0.95 };
 const buttonSpring = { type: "spring" as const, stiffness: 400, damping: 17 };
 
-// ──────────────────────────────────────────────────────────────
-// Logo
-// ──────────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════════════════
+ *  Sub-componentes
+ *  ════════════════════════════════════════════════════════════════════════ */
+
+/** Logotipo institucional reutilizable. */
 const Logo = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg className={`${className} text-[#4edea3]`} fill="currentColor" viewBox="0 0 24 24">
+  <svg
+    className={`${className} text-[#4edea3]`}
+    fill="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path d="M3 3h2v18H3V3zm6 8h2v10H9V11zm6-5h2v15h-2V6zm6 4h2v11h-2V10z" />
   </svg>
 );
 
-// ──────────────────────────────────────────────────────────────
-// Mockup del dashboard (flotando)
-// ──────────────────────────────────────────────────────────────
+/**
+ * Maqueta visual del dashboard que aparece flotando junto al Hero.
+ * No contiene datos reales; reproduce la estructura general del producto
+ * (top bar, sidebar, tarjetas KPI y gráfico de barras) como apoyo visual
+ * para que el visitante intuya cómo es la aplicación.
+ */
 function DashboardMockup() {
   return (
     <div className="bg-[#0e1511] rounded-xl w-full border border-white/10 overflow-hidden">
-      {/* Top bar */}
+      {/* Barra superior simulada */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-[#3c4a42]/40">
         <Logo className="w-4 h-4" />
         <span className="text-xs font-bold text-[#dde4dd]">Tracki</span>
@@ -70,7 +122,7 @@ function DashboardMockup() {
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar simulado */}
         <div className="w-1/4 p-3 space-y-1 border-r border-[#3c4a42]/40 hidden sm:block">
           <div className="text-[10px] font-bold py-1.5 px-2 rounded bg-[#4edea3]/10 text-[#4edea3]">Panel</div>
           <div className="text-[10px] py-1.5 px-2 text-[#bbcabf]">Movimientos</div>
@@ -83,13 +135,14 @@ function DashboardMockup() {
           </div>
         </div>
 
-        {/* Contenido */}
+        {/* Contenido principal simulado */}
         <div className="flex-1 p-4 space-y-3">
           <div>
             <p className="text-sm font-semibold text-[#dde4dd]">Hola, Test</p>
             <p className="text-[10px] text-[#bbcabf]">Aquí tienes tu resumen financiero</p>
           </div>
 
+          {/* Tres KPIs */}
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-[#161d19] border border-[#3c4a42]/40 rounded-lg p-2.5">
               <p className="text-[8px] uppercase font-bold text-[#bbcabf] mb-1 tracking-wider">Ingresos</p>
@@ -105,6 +158,7 @@ function DashboardMockup() {
             </div>
           </div>
 
+          {/* Gráfico de barras + indicador circular */}
           <div className="grid grid-cols-3 gap-2">
             <div className="col-span-2 bg-[#161d19] border border-[#3c4a42]/40 rounded-lg p-3 h-24 flex items-end gap-1.5">
               {[40, 70, 55, 90, 65, 80, 95].map((h, i) => (
@@ -116,7 +170,10 @@ function DashboardMockup() {
               ))}
             </div>
             <div className="bg-[#161d19] border border-[#3c4a42]/40 rounded-lg p-3 h-24 flex flex-col items-center justify-center">
-              <div className="w-10 h-10 rounded-full border-[3px] border-[#4edea3] border-t-transparent" style={{ transform: "rotate(45deg)" }} />
+              <div
+                className="w-10 h-10 rounded-full border-[3px] border-[#4edea3] border-t-transparent"
+                style={{ transform: "rotate(45deg)" }}
+              />
               <p className="text-[8px] text-[#bbcabf] mt-1">75%</p>
             </div>
           </div>
@@ -126,9 +183,11 @@ function DashboardMockup() {
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-// Mini gráfico animado para la card grande del Bento
-// ──────────────────────────────────────────────────────────────
+/**
+ * Gráfico de barras animado que ilustra la primera tarjeta del bento grid.
+ * Cada barra crece desde 0 al entrar en el viewport, con un desfase
+ * escalonado controlado por `delay: i * 0.08`.
+ */
 function MiniChart() {
   const bars = [40, 65, 50, 80, 70, 95, 85];
   return (
@@ -140,7 +199,11 @@ function MiniChart() {
           initial={{ height: 0, opacity: 0 }}
           whileInView={{ height: `${h}%`, opacity: 1 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8, delay: i * 0.08, ease: EASE_OUT_EXPO }}
+          transition={{
+            duration: 0.8,
+            delay: i * 0.08,
+            ease: EASE_OUT_EXPO,
+          }}
           style={{ boxShadow: "0 0 12px rgba(78,222,163,0.3)" }}
         />
       ))}
@@ -148,21 +211,25 @@ function MiniChart() {
   );
 }
 
-// ──────────────────────────────────────────────────────────────
-// Página principal (landing)
-// ──────────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════════════════
+ *  Componente principal
+ *  ════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Landing page exportada como ruta raíz (`/`).
+ */
 export default function LandingPage() {
   return (
     <div className="flex flex-col flex-grow selection:bg-[#4edea3] selection:text-[#003824] relative overflow-hidden">
 
-      {/* ───── Glows radiales de fondo (decorativos) ───── */}
+      {/* Fondo decorativo: tres glows radiales asimétricos */}
       <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="absolute top-[-200px] left-[-100px] w-[700px] h-[700px] bg-[#4edea3]/15 rounded-full blur-[160px]" />
         <div className="absolute top-[40%] right-[-200px] w-[600px] h-[600px] bg-[#4edea3]/10 rounded-full blur-[140px]" />
         <div className="absolute bottom-[10%] left-[20%] w-[500px] h-[500px] bg-[#7bd0ff]/5 rounded-full blur-[140px]" />
       </div>
 
-      {/* ───── Header glassmorphism ───── */}
+      {/* Header fijo con efecto glassmorphism */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -201,27 +268,33 @@ export default function LandingPage() {
         </div>
       </motion.header>
 
-      {/* ───── Main ───── */}
       <main className="flex-grow pt-32 pb-20">
 
-        {/* ── Hero ── */}
+        {/* ═════ Sección Hero ═════ */}
         <section className="max-w-7xl mx-auto px-6 pt-12 pb-32 flex flex-col lg:flex-row items-center gap-16 relative">
 
-          {/* Texto y CTAs */}
+          {/* Columna izquierda: textos y CTAs con animación en cascada */}
           <motion.div
             variants={heroContainer}
             initial="hidden"
             animate="visible"
             className="flex-1 text-center lg:text-left"
           >
-            <motion.div variants={heroItem} className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-[#4edea3]/10 border border-[#4edea3]/20 backdrop-blur-sm">
+            {/* Badge "Nuevo · Disponible gratis" con punto pulsante */}
+            <motion.div
+              variants={heroItem}
+              className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-[#4edea3]/10 border border-[#4edea3]/20 backdrop-blur-sm"
+            >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4edea3] opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4edea3]" />
               </span>
-              <span className="text-xs font-medium text-[#4edea3]">Nuevo · Disponible gratis</span>
+              <span className="text-xs font-medium text-[#4edea3]">
+                Nuevo · Disponible gratis
+              </span>
             </motion.div>
 
+            {/* Título principal con gradiente sobre "sencilla y visual." */}
             <motion.h1
               variants={heroItem}
               className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6 text-[#dde4dd] tracking-tight"
@@ -234,13 +307,17 @@ export default function LandingPage() {
               </span>
             </motion.h1>
 
+            {/* Subtítulo */}
             <motion.p
               variants={heroItem}
               className="text-lg md:text-xl text-[#bbcabf] mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
             >
-              Toma el control de tu futuro financiero hoy. Empieza a ahorrar, establecer objetivos y entender a dónde va tu dinero con nuestra plataforma intuitiva.
+              Toma el control de tu futuro financiero hoy. Empieza a ahorrar,
+              establecer objetivos y entender a dónde va tu dinero con nuestra
+              plataforma intuitiva.
             </motion.p>
 
+            {/* Botones CTA primario y secundario */}
             <motion.div
               variants={heroItem}
               className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-12"
@@ -279,7 +356,7 @@ export default function LandingPage() {
               </motion.div>
             </motion.div>
 
-            {/* Social proof */}
+            {/* Prueba social: avatares y contador de usuarios */}
             <motion.div
               variants={heroItem}
               className="flex items-center justify-center lg:justify-start gap-4"
@@ -295,7 +372,7 @@ export default function LandingPage() {
             </motion.div>
           </motion.div>
 
-          {/* Mockup flotando */}
+          {/* Columna derecha: mockup con entrada animada y flotación continua */}
           <motion.div
             initial={{ opacity: 0, x: 80, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -303,19 +380,23 @@ export default function LandingPage() {
             className="flex-1 relative w-full max-w-2xl lg:max-w-none"
           >
             <motion.div
+              // Animación de flotación infinita: oscila verticalmente
               animate={{ y: [0, -16, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               className="bg-[#161d19]/60 backdrop-blur-xl p-2 rounded-2xl border border-white/10 shadow-2xl relative z-10"
-              style={{ boxShadow: "0 30px 60px rgba(0,0,0,0.4), 0 0 80px rgba(78,222,163,0.15)" }}
+              style={{
+                boxShadow:
+                  "0 30px 60px rgba(0,0,0,0.4), 0 0 80px rgba(78,222,163,0.15)",
+              }}
             >
               <DashboardMockup />
             </motion.div>
-            {/* Glow detrás del mockup */}
+            {/* Halo de color tras el mockup */}
             <div className="absolute -inset-8 bg-gradient-to-tr from-[#4edea3]/25 via-transparent to-[#7bd0ff]/15 blur-3xl -z-10 rounded-3xl" />
           </motion.div>
         </section>
 
-        {/* ── Features (Bento Grid asimétrico) ── */}
+        {/* ═════ Sección de características (Bento Grid asimétrico) ═════ */}
         <section id="features" className="max-w-7xl mx-auto px-6 py-24 relative">
 
           <motion.div
@@ -329,14 +410,20 @@ export default function LandingPage() {
               Todo lo que necesitas para tu dinero
             </h2>
             <p className="text-lg text-[#bbcabf] max-w-2xl mx-auto">
-              Herramientas poderosas diseñadas para darte claridad y control sobre tus finanzas personales.
+              Herramientas poderosas diseñadas para darte claridad y control
+              sobre tus finanzas personales.
             </p>
           </motion.div>
 
-          {/* Bento grid: una card grande a la izquierda + dos pequeñas a la derecha */}
+          {/*
+            Bento Grid asimétrico:
+              - En pantallas pequeñas: una columna apilada.
+              - En lg+: 3 columnas × 2 filas con la primera tarjeta ocupando
+                un bloque 2×2.
+          */}
           <div className="grid grid-cols-1 lg:grid-cols-3 lg:grid-rows-2 gap-6 lg:auto-rows-fr">
 
-            {/* Card grande (Gráficos Intuitivos) */}
+            {/* Tarjeta grande: gráficos intuitivos con MiniChart */}
             <motion.div
               variants={scrollReveal}
               initial="hidden"
@@ -346,7 +433,7 @@ export default function LandingPage() {
               transition={{ ...buttonSpring }}
               className="lg:col-span-2 lg:row-span-2 group relative bg-[#161d19]/60 backdrop-blur-xl p-8 rounded-3xl border border-white/5 hover:border-[#4edea3]/30 transition-colors overflow-hidden flex flex-col"
             >
-              {/* Glow interno al hover */}
+              {/* Glows internos que se intensifican al hacer hover */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#4edea3]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
               <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#4edea3]/10 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
@@ -356,21 +443,26 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-3 text-[#dde4dd]">Gráficos Intuitivos</h3>
+                <h3 className="text-2xl md:text-3xl font-bold mb-3 text-[#dde4dd]">
+                  Gráficos Intuitivos
+                </h3>
                 <p className="text-[#bbcabf] leading-relaxed mb-8 max-w-md">
-                  Visualiza tus hábitos de gasto con gráficos claros y fáciles de entender que te dan una perspectiva real de tu dinero, mes a mes.
+                  Visualiza tus hábitos de gasto con gráficos claros y fáciles
+                  de entender que te dan una perspectiva real de tu dinero, mes
+                  a mes.
                 </p>
 
                 <div className="mt-auto pt-6">
                   <MiniChart />
                   <div className="flex justify-between mt-3 text-[10px] text-[#86948a] uppercase tracking-wider font-medium">
-                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+                    <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span>
+                    <span>Vie</span><span>Sáb</span><span>Dom</span>
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Card pequeña arriba derecha (Seguimiento Inteligente) */}
+            {/* Tarjeta superior derecha: seguimiento inteligente */}
             <motion.div
               variants={scrollReveal}
               initial="hidden"
@@ -388,14 +480,17 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-[#dde4dd]">Seguimiento Inteligente</h3>
+                <h3 className="text-xl font-bold mb-3 text-[#dde4dd]">
+                  Seguimiento Inteligente
+                </h3>
                 <p className="text-[#bbcabf] leading-relaxed text-sm">
-                  Categorización automática y seguimiento en tiempo real de todos tus movimientos financieros.
+                  Categorización automática y seguimiento en tiempo real de
+                  todos tus movimientos financieros.
                 </p>
               </div>
             </motion.div>
 
-            {/* Card pequeña abajo derecha (Objetivos de Ahorro) */}
+            {/* Tarjeta inferior derecha: objetivos de ahorro */}
             <motion.div
               variants={scrollReveal}
               initial="hidden"
@@ -413,16 +508,19 @@ export default function LandingPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-[#dde4dd]">Objetivos de Ahorro</h3>
+                <h3 className="text-xl font-bold mb-3 text-[#dde4dd]">
+                  Objetivos de Ahorro
+                </h3>
                 <p className="text-[#bbcabf] leading-relaxed text-sm">
-                  Establece metas personalizadas y mira cómo tu progreso avanza mes a mes hacia tu libertad financiera.
+                  Establece metas personalizadas y mira cómo tu progreso avanza
+                  mes a mes hacia tu libertad financiera.
                 </p>
               </div>
             </motion.div>
           </div>
         </section>
 
-        {/* ── CTA final ── */}
+        {/* ═════ Sección CTA final ═════ */}
         <section className="max-w-5xl mx-auto px-6 py-24">
           <motion.div
             variants={scrollRevealScale}
@@ -431,7 +529,7 @@ export default function LandingPage() {
             viewport={{ once: true, margin: "-100px" }}
             className="relative bg-gradient-to-b from-[#161d19] to-[#0e1511] rounded-[2rem] p-12 md:p-16 text-center border border-white/10 overflow-hidden"
           >
-            {/* Glows internos */}
+            {/* Glows decorativos del CTA */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-[#4edea3]/20 rounded-full blur-[100px]" />
               <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-[#7bd0ff]/10 rounded-full blur-[100px]" />
@@ -458,7 +556,8 @@ export default function LandingPage() {
                 transition={{ delay: 0.1 }}
                 className="text-lg md:text-xl text-[#bbcabf] mb-10 max-w-xl mx-auto leading-relaxed"
               >
-                Únete a miles de personas que ya están mejorando su salud financiera con Tracki. Es gratis y solo toma un minuto empezar.
+                Únete a miles de personas que ya están mejorando su salud
+                financiera con Tracki. Es gratis y solo toma un minuto empezar.
               </motion.p>
               <motion.div
                 variants={scrollReveal}
@@ -485,7 +584,9 @@ export default function LandingPage() {
                   </Link>
                 </motion.div>
               </motion.div>
-              <p className="text-xs text-[#86948a] mt-6">Sin tarjeta de crédito · Cancela cuando quieras</p>
+              <p className="text-xs text-[#86948a] mt-6">
+                Sin tarjeta de crédito · Cancela cuando quieras
+              </p>
             </div>
           </motion.div>
         </section>
